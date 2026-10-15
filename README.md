@@ -1,6 +1,15 @@
 # Uncensored - Nieuws Samenvatter
 
-Een minimale Chrome-extensie die tekst uit een nieuwsartikel haalt en een compacte samenvatting toont.
+[![Status: MVP](https://img.shields.io/badge/status-MVP-orange.svg)](https://github.com/Iqgor/Uncensored/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+Een open-source Chrome-extensie die nieuwsartikelen uitleest en met behulp van
+AI terugbrengt tot een korte samenvatting en kernpunten. Het project is een
+vroege MVP en staat open voor feedback, bugreports en bijdragen.
+
+> **Let op:** de eerste release is bedoeld voor lokaal gebruik. Er is nog geen
+> gehoste productie-backend en de extensie is nog niet gepubliceerd in de
+> Chrome Web Store.
 
 ## Lokaal starten
 
@@ -111,3 +120,15 @@ Om de extensie in productie te stylen zonder Gemini-output te gebruiken, zet je
 op de backend `NODE_ENV=production`. Het endpoint retourneert dan een vaste
 voorbeeldsamenvatting met titel, tekst en kernpunten. In development blijft
 `NODE_ENV=development` de standaard en wordt de echte Gemini-flow gebruikt.
+
+## Meewerken
+
+Ideeën, bugreports en pull requests zijn welkom. Lees eerst
+[CONTRIBUTING.md](CONTRIBUTING.md) voor de lokale setup en de verwachtingen voor
+bijdragen. Gebruik de issue-sjablonen voor gerichte bugreports en feature
+requests.
+
+## Release
+
+De huidige stabiele MVP-release is
+[v0.1.0](https://github.com/Iqgor/Uncensored/releases/tag/v0.1.0).
