@@ -1,4 +1,4 @@
-# Nieuws Samenvatter
+# Uncensored - Nieuws Samenvatter
 
 Een minimale Chrome-extensie die tekst uit een nieuwsartikel haalt en een compacte samenvatting toont.
 
