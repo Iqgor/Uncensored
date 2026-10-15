@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Nieuws Samenvatter</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main>
+      <h1>Uncensored</h1>
+      <label class="length-label" for="summary-length">
+        Lengte
+        <output id="summary-length-value" for="summary-length">4 kernpunten</output>
+      </label>
+      <div class="range-control">
+        <input
+          id="summary-length"
+          type="range"
+          min="2"
+          max="6"
+          step="2"
+          value="4"
+          list="summary-length-steps"
+        >
+        <datalist id="summary-length-steps">
+          <option value="2" label="2"></option>
+          <option value="4" label="4"></option>
+          <option value="6" label="6"></option>
+        </datalist>
+        <div class="range-markers" aria-hidden="true">
+          <span>2</span>
+          <span>4</span>
+          <span>6</span>
+        </div>
+      </div>
+      <button id="summarize" type="button">Artikel Samenvatten</button>
+      <p id="status" role="status"></p>
+      <details class="privacy-note">
+        <summary>Privacy</summary>
+        <p>
+          De artikeltekst wordt tijdelijk naar de lokale backend gestuurd en
+          voor de samenvatting doorgestuurd naar Google Gemini. Deze MVP slaat
+          geen artikelteksten of samenvattingen op. Alleen technische
+          verzoekgegevens worden gelogd.
+        </p>
+      </details>
+      <p id="paywall-warning" role="alert" hidden></p>
+      <section id="result" hidden>
+        <h2 id="result-title"></h2>
+        <p id="summary"></p>
+        <h3>Belangrijkste punten</h3>
+        <ul id="key-points"></ul>
+        <p class="disclaimer">AI-samenvatting. Controleer belangrijke informatie in de originele bron.</p>
+      </section>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

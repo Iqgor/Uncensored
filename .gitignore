@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Runtime output
+*.log
+npm-debug.log*
+
+# Operating-system and editor files
+.DS_Store
+Thumbs.db
+.vscode/

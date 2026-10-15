@@ -1,0 +1,214 @@
+Ja, dit is goed haalbaar. De workspace `C:\Uncensored` is momenteel leeg, dus er is nog geen bestaande code om op voort te bouwen. Je zou dit als een nieuwe Chrome-extensie kunnen ontwikkelen.
+
+## Mogelijke werking
+
+1. De gebruiker opent een nieuwsartikel.
+2. De extensie leest de relevante artikeltekst uit de pagina.
+3. Via een knop zoals **“Vat dit artikel samen”** wordt de tekst verstuurd.
+4. Een AI-model analyseert het artikel.
+5. De extensie toont een compacte overzichtskaart met bijvoorbeeld:
+   - Titel
+   - Samenvatting in enkele zinnen
+   - Belangrijkste punten
+   - Betrokken personen of organisaties
+   - Feiten, cijfers en datums
+   - Mogelijke bias of ontbrekende context
+   - Link naar de originele bron
+
+Voorbeeld:
+
+> **Kernsamenvatting**  
+> De Europese Commissie stelt nieuwe regels voor rond kunstmatige intelligentie. De regels richten zich vooral op transparantie, veiligheid en het gebruik van AI in overheidsdiensten.
+
+> **Belangrijkste punten**
+> - Nieuwe transparantieverplichtingen voor AI-aanbieders
+> - Strengere regels voor hoog-risico-AI
+> - Boetes bij overtredingen
+> - Implementatie wordt gefaseerd ingevoerd
+
+## Aanbevolen architectuur
+
+```text
+Chrome-extensie
+   |
+   | Artikeltekst ophalen
+   v
+Content script
+   |
+   | API-request
+   v
+Eigen backend
+   |
+   | AI-request
+   v
+AI-provider
+   |
+   v
+Gestructureerde samenvatting
+```
+
+### Chrome-extensie
+
+Een moderne Chrome-extensie gebruikt **Manifest V3**. De belangrijkste onderdelen zijn:
+
+- `content.js`  
+  Leest de tekst van de huidige pagina.
+- `popup.html` / `popup.tsx`  
+  Toont de samenvatting in de extensie.
+- `background.js` of service worker  
+  Regelt communicatie en achtergrondtaken.
+- `manifest.json`  
+  Definieert permissies en extensie-instellingen.
+
+Voor de interface zou ik React en TypeScript gebruiken, bijvoorbeeld met Vite.
+
+### Backend
+
+De AI-aanvraag moet bij voorkeur niet rechtstreeks vanuit de extensie naar een AI-provider gaan. API-sleutels in een Chrome-extensie zijn namelijk relatief eenvoudig te achterhalen.
+
+Een backend kan bijvoorbeeld worden gebouwd met:
+
+- Node.js
+- TypeScript
+- Fastify of Express
+- PostgreSQL indien gebruikers, geschiedenis of abonnementen nodig zijn
+- Rate limiting en authenticatie
+
+De backend ontvangt dan alleen de artikeltekst en retourneert een vast JSON-formaat:
+
+```json
+{
+  "summary": "Korte samenvatting van het artikel.",
+  "keyPoints": [
+    "Eerste belangrijk punt",
+    "Tweede belangrijk punt",
+    "Derde belangrijk punt"
+  ],
+  "entities": [
+    "Europese Commissie",
+    "AI-aanbieders"
+  ],
+  "confidence": "medium"
+}
+```
+
+## Belangrijkste technische uitdagingen
+
+### 1. Artikeltekst correct herkennen
+
+Niet iedere nieuwswebsite heeft dezelfde HTML-structuur. Daarom is het beter om niet alleen zelf DOM-selectors te schrijven, maar een artikel-extractiebibliotheek te gebruiken, zoals een Readability-implementatie.
+
+Daarmee kunnen advertenties, navigatie en gerelateerde artikelen meestal worden verwijderd.
+
+Mogelijke problemen:
+
+- Websites die content dynamisch laden
+- Artikelen achter een paywall
+- Cookie- of loginpagina’s
+- Videoartikelen
+- Websites met weinig tekst
+- Regionale of gepersonaliseerde inhoud
+
+De extensie moet in zulke gevallen een duidelijke foutmelding tonen in plaats van een lege of misleidende samenvatting.
+
+### 2. Lange artikelen
+
+AI-modellen hebben limieten voor de hoeveelheid tekst die ze kunnen verwerken. Een goed systeem kan:
+
+1. De tekst opschonen.
+2. Het artikel opdelen in stukken.
+3. Elk stuk samenvatten.
+4. De tussensamenvattingen combineren tot één eindresultaat.
+
+### 3. Betrouwbaarheid
+
+Een samenvatting kan feitelijke fouten bevatten of belangrijke context weglaten. Daarom zou de interface duidelijk moeten maken dat het om een AI-samenvatting gaat.
+
+Nuttige verbeteringen:
+
+- Belangrijke punten laten verwijzen naar passages uit het artikel
+- Geen nieuwe feiten laten toevoegen
+- Alleen informatie uit de aangeleverde tekst gebruiken
+- Onzekerheid tonen wanneer de bron onduidelijk is
+- Een knop aanbieden om de originele tekst te bekijken
+
+### 4. Privacy
+
+Nieuwsartikelen kunnen persoonsgegevens, gevoelige informatie of auteursrechtelijk beschermde inhoud bevatten. Daarom moet je vooraf duidelijk bepalen:
+
+- Wordt artikeltekst opgeslagen?
+- Hoe lang blijft die bewaard?
+- Worden gebruikersgegevens opgeslagen?
+- Wordt data gebruikt voor modeltraining?
+- Kunnen gebruikers hun geschiedenis verwijderen?
+- Wordt verwerking in Europa uitgevoerd?
+
+Een privacyvriendelijke eerste versie kan artikeltekst alleen tijdelijk verwerken en daarna verwijderen.
+
+### 5. Kosten
+
+De kosten hangen vooral af van:
+
+- Aantal samenvattingen
+- Gemiddelde lengte van artikelen
+- Gekozen AI-model
+- Of de gebruiker inlogt
+- Of gratis gebruik wordt toegestaan
+
+Een praktisch model is:
+
+- Gratis gebruikers krijgen een beperkt aantal samenvattingen per dag.
+- Intensief gebruik vereist een account of abonnement.
+- Het backend bewaakt limieten per gebruiker en per IP-adres.
+
+## Aanbevolen MVP
+
+De eerste versie kan bewust klein blijven:
+
+1. Chrome-extensie met een popup.
+2. Knop **“Samenvatten”**.
+3. Automatische extractie van de huidige nieuwsartikeltekst.
+4. Backend-endpoint voor samenvattingen.
+5. AI-output als:
+   - Samenvatting
+   - Drie tot vijf kernpunten
+   - Belangrijke namen en organisaties
+6. Foutafhandeling voor pagina’s waarop geen artikeltekst gevonden wordt.
+7. Geen gebruikersaccounts of geschiedenis in de eerste versie.
+
+Daarna kunnen functies worden toegevoegd zoals:
+
+- Meerdere talen
+- Instelbare samenvattingslengte
+- “Leg uit alsof ik 12 ben”
+- Bias- en bronanalyse
+- Vergelijking van meerdere nieuwsbronnen
+- Voorlezen van de samenvatting
+- Opslaan en delen
+- Factchecking
+- Detectie van opiniestukken versus nieuwsberichten
+
+## Mijn advies voor de stack
+
+```text
+Extensie:     React + TypeScript + Vite
+Manifest:     Chrome Manifest V3
+Extractie:    Mozilla Readability
+Backend:      Node.js + TypeScript
+API:          REST of eventueel tRPC
+AI:           AI-provider via de backend
+Hosting:      Cloudflare Workers, Vercel of vergelijkbaar
+Database:     Alleen nodig vanaf accounts/geschiedenis
+```
+
+## Conclusie
+
+Het idee is technisch haalbaar en geschikt voor een MVP. De grootste risico’s zitten niet in het maken van de Chrome-extensie zelf, maar in:
+
+- Het betrouwbaar extraheren van nieuwsartikelen
+- De kosten van AI-verwerking
+- Privacy en auteursrecht
+- Het voorkomen van misleidende of onnauwkeurige samenvattingen
+- Het veilig bewaren van API-sleutels
+
+De verstandigste eerste stap is een eenvoudige extensie die alleen de huidige pagina samenvat. Daarna kunnen betrouwbaarheid, bronverwijzingen, meertaligheid en gebruikersaccounts worden toegevoegd.

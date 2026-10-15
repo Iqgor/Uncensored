@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Nieuws Samenvatter",
+  "version": "0.1.0",
+  "description": "Vat nieuwsartikelen samen met behulp van AI.",
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": ["http://localhost:8787/*"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
