@@ -62,14 +62,19 @@ productie zijn gedeelde opslag, authenticatie en een privacybeleid nodig.
 De extensie leest alleen de tekst van de actieve pagina wanneer de gebruiker
 op **Artikel Samenvatten** klikt. De tekst wordt naar de lokale backend gestuurd
 en vervolgens doorgestuurd naar Google Gemini om de samenvatting te genereren.
-De huidige MVP gebruikt geen database en bewaart artikelteksten of
-samenvattingen niet bewust. De backend houdt alleen tijdelijke rate-limitdata
-in geheugen bij.
+De huidige MVP gebruikt geen database. De backend houdt alleen tijdelijke
+rate-limitdata in geheugen bij; de extensie gebruikt daarnaast een lokale
+cache voor samenvattingen, zoals hieronder beschreven.
 
 De serverlog bevat uitsluitend technische gegevens: HTTP-methode, route,
 statuscode, verwerkingstijd en clientadres. Artikeltekst, AI-uitvoer en
 API-sleutels worden niet gelogd. Google Gemini verwerkt de doorgestuurde tekst
 volgens de voorwaarden en het privacybeleid van de gekozen Google-dienst.
+
+De extensie bewaart samenvattingen maximaal 7 dagen lokaal in Chrome. De
+cache wordt gekoppeld aan de pagina-URL, de uitgelezen artikeltekst en het
+aantal kernpunten. Een gewijzigde artikelpagina of een andere samenvattingslengte
+maakt daarom automatisch een nieuwe samenvatting.
 
 Gebruik deze lokale MVP niet voor vertrouwelijke of gevoelige teksten. Voor
 publieke productieversies moeten bewaartermijnen, gebruikersinformatie,
