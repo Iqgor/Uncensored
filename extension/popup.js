@@ -1,4 +1,3 @@
-const summarizeButton = document.querySelector("#summarize");
 const summaryLengthElement = document.querySelector("#summary-length");
 const summaryLengthValueElement = document.querySelector("#summary-length-value");
 const statusElement = document.querySelector("#status");
@@ -59,11 +58,14 @@ function updateSummaryLengthLabel() {
   summaryLengthValueElement.textContent = `${summaryLengthElement.value} kernpunten`;
 }
 
-summaryLengthElement.addEventListener("input", updateSummaryLengthLabel);
+summaryLengthElement.addEventListener("input", () => {
+  updateSummaryLengthLabel();
+  void summarizeArticle();
+});
 updateSummaryLengthLabel();
 
-summarizeButton.addEventListener("click", async () => {
-  summarizeButton.disabled = true;
+async function summarizeArticle() {
+  document.body.classList.add("loading");
   resultElement.hidden = true;
   paywallWarningElement.hidden = true;
   setStatus("Artikel wordt gelezen...");
@@ -112,6 +114,8 @@ summarizeButton.addEventListener("click", async () => {
   } catch (error) {
     setStatus(getErrorMessage(error, "Er ging iets mis bij het samenvatten."));
   } finally {
-    summarizeButton.disabled = false;
+    document.body.classList.remove("loading");
   }
-});
+}
+
+void summarizeArticle();
