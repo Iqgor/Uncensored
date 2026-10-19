@@ -34,6 +34,23 @@
         </div>
       </div>
       <p id="status" role="status"></p>
+      <button id="retry-summary" class="retry-action" type="button" hidden>
+        Opnieuw proberen
+      </button>
+      <p id="paywall-warning" role="alert" hidden></p>
+      <section id="result" hidden class="result">
+        <h2 id="result-title"></h2>
+        <div class="result-actions" aria-label="Acties">
+          <button id="copy-summary" type="button">Samenvatting kopiëren</button>
+          <a id="original-article" href="#" target="_blank" rel="noopener noreferrer" hidden>
+            Origineel artikel openen
+          </a>
+        </div>
+        <p id="summary"></p>
+        <h3>Belangrijkste punten</h3>
+        <ul id="key-points"></ul>
+        <p class="disclaimer">AI-samenvatting. Controleer belangrijke informatie in de originele bron.</p>
+      </section>
       <details class="privacy-note">
         <summary>Privacy</summary>
         <p>
@@ -44,14 +61,6 @@
           verzoekgegevens worden gelogd.
         </p>
       </details>
-      <p id="paywall-warning" role="alert" hidden></p>
-      <section id="result" hidden class="result">
-        <h2 id="result-title"></h2>
-        <p id="summary"></p>
-        <h3>Belangrijkste punten</h3>
-        <ul id="key-points"></ul>
-        <p class="disclaimer">AI-samenvatting. Controleer belangrijke informatie in de originele bron.</p>
-      </section>
     </main>
     <script src="popup.js"></script>
   </body>

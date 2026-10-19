@@ -6,6 +6,9 @@ const titleElement = document.querySelector("#result-title");
 const paywallWarningElement = document.querySelector("#paywall-warning");
 const summaryElement = document.querySelector("#summary");
 const keyPointsElement = document.querySelector("#key-points");
+const copySummaryElement = document.querySelector("#copy-summary");
+const retrySummaryElement = document.querySelector("#retry-summary");
+const originalArticleElement = document.querySelector("#original-article");
 const CACHE_PREFIX = "summary-cache:";
 const CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -111,6 +114,10 @@ function showResult(result, article = {}) {
     ? "Let op: deze pagina lijkt een paywall te bevatten. De samenvatting is mogelijk gebaseerd op onvolledige artikeltekst."
     : "";
   summaryElement.textContent = result.summary;
+  originalArticleElement.hidden = !article.url;
+  if (article.url) {
+    originalArticleElement.href = article.url;
+  }
   keyPointsElement.replaceChildren(
     ...result.keyPoints.map((point) => {
       const item = document.createElement("li");
@@ -119,6 +126,26 @@ function showResult(result, article = {}) {
     })
   );
   resultElement.hidden = false;
+}
+
+function getSummaryText() {
+  const keyPoints = [...keyPointsElement.querySelectorAll("li")].map(
+    (item) => `- ${item.textContent}`
+  );
+  return [titleElement.textContent, summaryElement.textContent, ...keyPoints]
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+async function copySummary() {
+  try {
+    await navigator.clipboard.writeText(getSummaryText());
+    setStatus("Samenvatting gekopieerd.");
+  } catch (error) {
+    setStatus(
+      getErrorMessage(error, "De samenvatting kon niet worden gekopieerd.")
+    );
+  }
 }
 
 const previewResult = {
@@ -146,12 +173,21 @@ summaryLengthElement.addEventListener("input", () => {
   updateSummaryLengthLabel();
   void summarizeArticle();
 });
+copySummaryElement.addEventListener("click", () => {
+  void copySummary();
+});
+retrySummaryElement.addEventListener("click", () => {
+  void summarizeArticle({ forceRefresh: true });
+});
 updateSummaryLengthLabel();
 
-async function summarizeArticle() {
+async function summarizeArticle({ forceRefresh = false } = {}) {
   document.body.classList.add("loading");
   resultElement.hidden = true;
   paywallWarningElement.hidden = true;
+  copySummaryElement.disabled = true;
+  retrySummaryElement.disabled = true;
+  retrySummaryElement.hidden = true;
   setStatus("Artikel wordt gelezen...");
 
   try {
@@ -181,11 +217,13 @@ async function summarizeArticle() {
     }
 
     const summaryLength = Number(summaryLengthElement.value);
-    const cached = await getCachedSummary(article, summaryLength);
-    if (cached) {
-      showResult(cached.result, article);
-      setStatus("Lokale samenvatting geladen.");
-      return;
+    if (!forceRefresh) {
+      const cached = await getCachedSummary(article, summaryLength);
+      if (cached) {
+        showResult(cached.result, article);
+        setStatus("Lokale samenvatting geladen.");
+        return;
+      }
     }
 
     setStatus("Samenvatting wordt gemaakt...");
@@ -211,6 +249,9 @@ async function summarizeArticle() {
   } catch (error) {
     setStatus(getErrorMessage(error, "Er ging iets mis bij het samenvatten."));
   } finally {
+    copySummaryElement.disabled = false;
+    retrySummaryElement.disabled = false;
+    retrySummaryElement.hidden = false;
     document.body.classList.remove("loading");
   }
 }

@@ -114,6 +114,10 @@ API-key nooit. Het bestand wordt door `.gitignore` uitgesloten.
 In de extensie kun je kiezen tussen 2, 4 of 6 kernpunten. De gekozen lengte
 wordt naar de backend gestuurd en door Gemini exact aangehouden.
 
+Na het samenvatten kun je de samenvatting naar het klembord kopiëren, opnieuw
+laten genereren of het originele artikel openen. De knop **Opnieuw proberen**
+blijft ook beschikbaar wanneer het samenvatten mislukt.
+
 ## Taal
 
 Gemini detecteert automatisch de taal van het artikel. De titel, samenvatting

@@ -208,6 +208,29 @@ input[type="range"]:focus-visible {
   display: none;
 }
 
+.retry-action {
+  border: 1px solid rgba(71, 85, 166, 0.22);
+  border-radius: 7px;
+  padding: 6px 9px;
+  color: #39439a;
+  background: rgba(129, 140, 248, 0.12);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.retry-action:hover,
+.retry-action:focus-visible {
+  border-color: rgba(71, 85, 166, 0.45);
+  background: rgba(129, 140, 248, 0.24);
+}
+
+.retry-action:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
 .privacy-note {
   margin-top: 12px;
   color: #536176;
@@ -234,6 +257,40 @@ input[type="range"]:focus-visible {
   color: #172554;
 
   line-height: 1.35;
+}
+
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+
+.result-actions button,
+.result-actions a {
+  border: 1px solid rgba(71, 85, 166, 0.22);
+  border-radius: 7px;
+  padding: 6px 9px;
+  color: #39439a;
+  background: rgba(129, 140, 248, 0.12);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.result-actions button:hover,
+.result-actions button:focus-visible,
+.result-actions a:hover,
+.result-actions a:focus-visible {
+  border-color: rgba(71, 85, 166, 0.45);
+  background: rgba(129, 140, 248, 0.24);
+}
+
+.result-actions button:disabled {
+  cursor: wait;
+  opacity: 0.55;
 }
 
 .result{
