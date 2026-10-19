@@ -134,7 +134,12 @@ const previewResult = {
 };
 
 function updateSummaryLengthLabel() {
-  summaryLengthValueElement.textContent = `${summaryLengthElement.value} kernpunten`;
+  summaryLengthValueElement.textContent = `Aantal kernpunten: ${summaryLengthElement.value}`;
+  const minimum = Number(summaryLengthElement.min);
+  const maximum = Number(summaryLengthElement.max);
+  const progress =
+    ((Number(summaryLengthElement.value) - minimum) / (maximum - minimum)) * 100;
+  summaryLengthElement.style.setProperty("--range-progress", `${progress}%`);
 }
 
 summaryLengthElement.addEventListener("input", () => {

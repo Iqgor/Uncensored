@@ -7,10 +7,7 @@ body {
   width: 380px;
   margin: 0;
   color: #17233f;
-  background:
-    radial-gradient(circle at 100% 0, rgba(129, 140, 248, 0.3), transparent 42%),
-    linear-gradient(145deg, #eef5ff 0%, #f7f3ff 52%, #fff 100%);
-  font: 14px/1.55 Inter, "Lora", serif;;
+  font: 14px/1.55 "DM Sans", sans-serif;
 }
 
 body::before {
@@ -23,6 +20,36 @@ body::before {
 
 body.loading::before {
   animation: loading-border 1.1s ease-in-out infinite;
+}
+
+main{
+    position: relative;
+    overflow: hidden;
+    background:
+    radial-gradient(circle at 100% 0, rgba(129, 140, 248, 0.3), transparent 80%),
+    linear-gradient(145deg, #eef5ff 0%, #f7f3ff 52%, #fff 100%);
+    background-size: 145% 145%, 180% 180%;
+    animation: background-drift 16s ease-in-out infinite alternate;
+}
+
+@keyframes background-drift {
+  0% {
+    background-position: 100% 0, 0% 0%;
+  }
+
+  50% {
+    background-position: 72% 18%, 100% 45%;
+  }
+
+  100% {
+    background-position: 100% 8%, 15% 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  main {
+    animation: none;
+  }
 }
 
 @keyframes loading-border {
@@ -45,6 +72,7 @@ body.loading::before {
 main {
   min-height: 260px;
   padding: 20px;
+  border:rgba(148, 163, 184, 0.28) solid 1px;
 }
 
 h1 {
@@ -52,106 +80,121 @@ h1 {
   color: #1D2128;
   font-size: 32px;
   letter-spacing: -0.025em;
+  text-transform: uppercase;
 }
 
 .length-label {
   display: flex;
   justify-content: space-between;
-  margin: 0 0 5px;
+  align-items: center;
+  margin: 18px 0 9px;
   color: #536176;
   font-size: 12px;
   font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 output {
-  color: #4755a6;
+  border-radius: 999px;
+  padding: 4px 9px;
+  color: #39439a;
+  background: rgba(129, 140, 248, 0.14);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  text-transform: none;
 }
 
 input[type="range"] {
+  display: block;
   width: 100%;
+  height: 24px;
   margin: 0;
-  accent-color: #4755a6;
+  appearance: none;
+  border-radius: 999px;
+  outline: none;
+  background: transparent;
   cursor: pointer;
 }
 
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 12px;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      90deg,
+      #5967c8 0%,
+      #5967c8 var(--range-progress, 50%),
+      #dce2f2 var(--range-progress, 50%),
+      #dce2f2 100%
+    );
+  box-shadow: inset 0 1px 2px rgba(36, 48, 105, 0.12);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  width: 22px;
+  height: 22px;
+  margin-top: -5px;
+  appearance: none;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  background: #5967c8;
+  box-shadow:
+    0 2px 5px rgba(42, 54, 122, 0.24),
+    0 0 0 1px rgba(71, 85, 166, 0.18);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+input[type="range"]:hover::-webkit-slider-thumb,
+input[type="range"]:focus-visible::-webkit-slider-thumb {
+  transform: scale(1.12);
+  box-shadow:
+    0 3px 8px rgba(42, 54, 122, 0.3),
+    0 0 0 5px rgba(89, 103, 200, 0.16);
+}
+
+input[type="range"]::-moz-range-track {
+  height: 12px;
+  border-radius: 999px;
+  background: #dce2f2;
+  box-shadow: inset 0 1px 2px rgba(36, 48, 105, 0.12);
+}
+
+input[type="range"]::-moz-range-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: #5967c8;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  background: #5967c8;
+  box-shadow:
+    0 2px 5px rgba(42, 54, 122, 0.24),
+    0 0 0 1px rgba(71, 85, 166, 0.18);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+input[type="range"]:focus-visible {
+  outline: 3px solid rgba(89, 103, 200, 0.24);
+  outline-offset: 3px;
+}
+
 .range-control {
-  margin-bottom: 12px;
+  margin: 0 1px 12px;
 }
 
 .range-markers {
   display: flex;
   justify-content: space-between;
-  margin: 2px 7px 0;
-  color: #69758a;
-  font-size: 11px;
-}
-
-button {
-  all: unset;
-  width: auto;
-  height: 30px;
-  font-size: 16px;
-  font-family: Inter, "DM Sans", serif;
-  background: transparent;
-  border: none;
-  position: relative;
-  color: #f0f0f0;
-  cursor: pointer;
-  z-index: 1;
-  padding: 10px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-}
-
-button::after,
-button::before {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  z-index: -99999;
-  transition: all .4s;
-}
-
-button::before {
-  transform: translate(0%, 0%);
-  width: 100%;
-  height: 100%;
-  background: #28282d;
-  border-radius: 10px;
-}
-
-button::after {
-  transform: translate(10px, 10px);
-  width: 35px;
-  height: 35px;
-  background: #ffffff15;
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-  border-radius: 50px;
-}
-
-button:hover::before {
-  transform: translate(5%, 20%);
-  width: 110%;
-  height: 110%;
-}
-
-button:hover::after {
-  border-radius: 10px;
-  transform: translate(0, 0);
-  width: 100%;
-  height: 100%;
-}
-
-button:active::after {
-  transition: 0s;
-  transform: translate(0, 5%);
+  margin: 4px 8px 0;
+  color: #68759a;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
 #status {
@@ -186,21 +229,25 @@ button:active::after {
   background: rgba(255, 255, 255, 0.48);
 }
 
-#result {
+#result-title {
+  margin: 0 0 8px;
+  color: #172554;
+
+  line-height: 1.35;
+}
+
+.result{
+  font-family: Inter, "Lora", serif;
   margin-top: 14px;
   border: 1px solid rgba(148, 163, 184, 0.28);
   border-radius: 14px;
   padding: 16px;
   background: rgba(255, 255, 255, 0.72);
   box-shadow: 0 8px 24px rgba(30, 41, 59, 0.08);
+  font-size: 16px;
 }
 
-#result-title {
-  margin: 0 0 8px;
-  color: #172554;
-  font-size: 16px;
-  line-height: 1.35;
-}
+
 
 #paywall-warning {
   margin: 12px 0 0;
@@ -209,13 +256,11 @@ button:active::after {
   padding: 9px 10px;
   color: #7a4b00;
   background: #fff7df;
-  font-size: 12px;
 }
 
 h3 {
   margin: 16px 0 6px;
   color: #334155;
-  font-size: 13px;
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
