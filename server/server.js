@@ -116,7 +116,7 @@ function getProductionMockupSummary(summaryLength) {
   return {
     title: "Nieuwe regels moeten online veiligheid versterken",
     summary:
-      "De Europese Commissie presenteert nieuwe maatregelen om gebruikers beter te beschermen op online platforms. De voorstellen richten zich op transparantie, duidelijke meldprocedures en meer verantwoordelijkheid voor grote techbedrijven.",
+      "De Europese Commissie presenteert nieuwe maatregelen om gebruikers beter te beschermen op online platforms.\n\nDe voorstellen richten zich op transparantie, duidelijke meldprocedures en meer verantwoordelijkheid voor grote techbedrijven.",
     keyPoints: [
       "Platforms moeten sneller reageren op meldingen van schadelijke inhoud.",
       "Gebruikers krijgen meer inzicht in de manier waarop aanbevelingen werken.",
@@ -165,7 +165,7 @@ async function summarizeWithGemini(article, summaryLength) {
           {
             parts: [
               {
-                text: `Vat dit nieuwsartikel samen met precies ${summaryLength} kernpunten.\n\nTitel: ${
+                text: `Vat dit nieuwsartikel samen met precies ${summaryLength} kernpunten. Schrijf de samenvatting als twee of drie korte alinea's en scheid de alinea's met een lege regel.\n\nTitel: ${
                   article.title?.trim() || "Onbekend"
                 }\n\nArtikel:\n${cleanArticleText(article.text)}`
               }

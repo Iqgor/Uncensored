@@ -38,7 +38,11 @@ De server gebruikt Gemini voor samenvattingen. Voeg API-sleutels nooit toe aan
 de extensie zelf; gebruik daarvoor altijd de backend.
 
 De extensie gebruikt Mozilla Readability om advertenties, navigatie en andere
-niet-relevante paginaonderdelen beter van de artikeltekst te scheiden. Bij
+niet-relevante paginaonderdelen beter van de artikeltekst te scheiden. Een
+paywall wordt alleen gemeld wanneer JSON-LD de pagina als niet gratis markeert,
+of wanneer zichtbare tekst in het artikel of een duidelijk als
+premium/paywall gemarkeerd element woorden bevat zoals `premium`, `paywall` of
+`abonnement`; login- en accountvelden gelden niet als paywall. Bij
 pagina's waarop Readability geen artikel vindt, blijft een eenvoudige fallback
 beschikbaar.
 

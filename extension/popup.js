@@ -1,6 +1,7 @@
 const summaryLengthElement = document.querySelector("#summary-length");
 const summaryLengthValueElement = document.querySelector("#summary-length-value");
-const statusElement = document.querySelector("#status");
+const statusModalElement = document.querySelector("#status-modal");
+const statusElement = document.querySelector("#status-message");
 const resultElement = document.querySelector("#result");
 const titleElement = document.querySelector("#result-title");
 const paywallWarningElement = document.querySelector("#paywall-warning");
@@ -10,10 +11,35 @@ const copySummaryElement = document.querySelector("#copy-summary");
 const retrySummaryElement = document.querySelector("#retry-summary");
 const originalArticleElement = document.querySelector("#original-article");
 const CACHE_PREFIX = "summary-cache:";
+const SUMMARY_FORMAT_VERSION = 3;
 const CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const STATUS_DISPLAY_TIME_MS = 3000;
+let statusTimer;
+let currentStatus = "";
 
 function setStatus(message) {
+  if (message === currentStatus) {
+    return;
+  }
+  currentStatus = message;
+  window.clearTimeout(statusTimer);
+  if (!message) {
+    if (statusModalElement.open) {
+      statusModalElement.close();
+    }
+    statusElement.textContent = "";
+    return;
+  }
+
   statusElement.textContent = message;
+  if (!statusModalElement.open) {
+    statusModalElement.showModal();
+  }
+  statusTimer = window.setTimeout(() => {
+    if (statusModalElement.open) {
+      statusModalElement.close();
+    }
+  }, STATUS_DISPLAY_TIME_MS);
 }
 
 function getErrorMessage(error, fallback) {
@@ -35,7 +61,7 @@ function hashText(value) {
 
 function getCacheKey(article, summaryLength) {
   return `${CACHE_PREFIX}${hashText(
-    `${article.url || ""}\n${article.title || ""}\n${article.text}\n${summaryLength}`
+    `${SUMMARY_FORMAT_VERSION}\n${article.url || ""}\n${article.title || ""}\n${article.text}\n${summaryLength}`
   )}`;
 }
 
@@ -113,7 +139,18 @@ function showResult(result, article = {}) {
   paywallWarningElement.textContent = article.paywallDetected
     ? "Let op: deze pagina lijkt een paywall te bevatten. De samenvatting is mogelijk gebaseerd op onvolledige artikeltekst."
     : "";
-  summaryElement.textContent = result.summary;
+  summaryElement.replaceChildren(
+    ...result.summary
+      .replace(/\.\s+/g, ".\n\n")
+      .split(/\r?\n\s*\r?\n/)
+      .map((paragraph) => paragraph.trim())
+      .filter(Boolean)
+      .map((paragraph) => {
+        const element = document.createElement("p");
+        element.textContent = paragraph;
+        return element;
+      })
+  );
   originalArticleElement.hidden = !article.url;
   if (article.url) {
     originalArticleElement.href = article.url;
@@ -129,10 +166,14 @@ function showResult(result, article = {}) {
 }
 
 function getSummaryText() {
+  const summary = [...summaryElement.querySelectorAll("p")]
+    .map((paragraph) => paragraph.textContent)
+    .filter(Boolean)
+    .join("\n\n");
   const keyPoints = [...keyPointsElement.querySelectorAll("li")].map(
     (item) => `- ${item.textContent}`
   );
-  return [titleElement.textContent, summaryElement.textContent, ...keyPoints]
+  return [titleElement.textContent, summary, ...keyPoints]
     .filter(Boolean)
     .join("\n\n");
 }
@@ -183,12 +224,12 @@ updateSummaryLengthLabel();
 
 async function summarizeArticle({ forceRefresh = false } = {}) {
   document.body.classList.add("loading");
+  setStatus("");
   resultElement.hidden = true;
   paywallWarningElement.hidden = true;
   copySummaryElement.disabled = true;
   retrySummaryElement.disabled = true;
   retrySummaryElement.hidden = true;
-  setStatus("Artikel wordt gelezen...");
 
   try {
     if (!globalThis.chrome?.tabs?.query) {
@@ -226,7 +267,6 @@ async function summarizeArticle({ forceRefresh = false } = {}) {
       }
     }
 
-    setStatus("Samenvatting wordt gemaakt...");
     const response = await chrome.runtime.sendMessage({
       type: "SUMMARIZE_ARTICLE",
       article: {

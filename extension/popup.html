@@ -33,10 +33,10 @@
           <span>6</span>
         </div>
       </div>
-      <p id="status" role="status"></p>
-      <button id="retry-summary" class="retry-action" type="button" hidden>
-        Opnieuw proberen
-      </button>
+      <dialog id="status-modal" aria-labelledby="status-message">
+        <p id="status-message" role="status"></p>
+      </dialog>
+
       <p id="paywall-warning" role="alert" hidden></p>
       <section id="result" hidden class="result">
         <h2 id="result-title"></h2>
@@ -46,11 +46,14 @@
             Origineel artikel openen
           </a>
         </div>
-        <p id="summary"></p>
+        <div id="summary"></div>
         <h3>Belangrijkste punten</h3>
         <ul id="key-points"></ul>
         <p class="disclaimer">AI-samenvatting. Controleer belangrijke informatie in de originele bron.</p>
       </section>
+      <button id="retry-summary" class="retry-action" type="button" hidden>
+        Opnieuw proberen
+      </button>
       <details class="privacy-note">
         <summary>Privacy</summary>
         <p>

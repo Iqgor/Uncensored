@@ -1862,27 +1862,51 @@
 
   // content-source.js
   var import_readability = __toESM(require_readability(), 1);
+  function hasPaidJsonLd() {
+    const ldJsonScripts = document.querySelectorAll(
+      "script[type='application/ld+json']"
+    );
+    for (const script of ldJsonScripts) {
+      try {
+        const data = JSON.parse(script.textContent || "");
+        const items = Array.isArray(data) ? data : Array.isArray(data?.["@graph"]) ? data["@graph"] : [data];
+        if (items.some(
+          (item) => item?.isAccessibleForFree === false || typeof item?.isAccessibleForFree === "string" && item.isAccessibleForFree.toLowerCase() === "false"
+        )) {
+          return true;
+        }
+      } catch (_error) {
+      }
+    }
+    return false;
+  }
   function detectPaywall() {
-    const paywallSelectors = [
-      "[class*='paywall' i]",
-      "[id*='paywall' i]",
-      "[class*='premium' i]",
-      "[id*='premium' i]",
-      "[class*='subscription' i]",
-      "[id*='subscription' i]",
-      "[class*='abonnement' i]",
-      "[id*='abonnement' i]"
-    ];
-    const hasPaywallElement = paywallSelectors.some(
-      (selector) => [...document.querySelectorAll(selector)].some(
-        (element) => element.textContent?.trim() && getComputedStyle(element).display !== "none" && getComputedStyle(element).visibility !== "hidden"
+    if (hasPaidJsonLd()) {
+      return true;
+    }
+    const premiumTextPattern = /\b(?:premium|paywall|abonnement|abonnee(?:s)?|abonneer|subscribe(?:r|d)?|members?-only)\b/i;
+    const isVisible = (element) => {
+      const style = getComputedStyle(element);
+      return style.display !== "none" && style.visibility !== "hidden";
+    };
+    const isLoginUi = (element) => Boolean(
+      element.closest(
+        "form, dialog, [role='dialog'], [class*='login' i], [id*='login' i], [class*='account' i], [id*='account' i]"
       )
     );
-    const articleText = document.querySelector("article")?.textContent || document.querySelector("main")?.textContent || "";
-    const hasPaywallText = /lees verder|abonneer|abonnement|premium-artikel|inloggen om verder/i.test(
-      articleText
-    );
-    return hasPaywallElement || hasPaywallText;
+    const hasPremiumText = (element) => isVisible(element) && !isLoginUi(element) && premiumTextPattern.test(element.textContent || "");
+    const contentRoots = [
+      document.querySelector("article"),
+      document.querySelector("main")
+    ].filter(Boolean);
+    if (contentRoots.some(hasPremiumText)) {
+      return true;
+    }
+    return [
+      ...document.querySelectorAll(
+        "[class*='premium' i], [id*='premium' i], [class*='paywall' i], [id*='paywall' i]"
+      )
+    ].some(hasPremiumText);
   }
   function createArticle(title, text, paywallDetected) {
     return {
