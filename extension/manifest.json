@@ -3,10 +3,13 @@
   "name": "Nieuws Samenvatter",
   "version": "0.1.0",
   "description": "Vat nieuwsartikelen samen met behulp van AI.",
-  "permissions": ["activeTab", "scripting", "storage"],
+  "permissions": ["activeTab", "sidePanel", "scripting", "storage"],
   "host_permissions": ["http://localhost:8787/*"],
   "action": {
-    "default_popup": "popup.html"
+    "default_title": "Open Samenvatting"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
   },
   "background": {
     "service_worker": "background.js"

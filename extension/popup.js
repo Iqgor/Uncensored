@@ -10,7 +10,18 @@ const keyPointsElement = document.querySelector("#key-points");
 const copySummaryElement = document.querySelector("#copy-summary");
 const retrySummaryElement = document.querySelector("#retry-summary");
 const originalArticleElement = document.querySelector("#original-article");
+const currentViewElement = document.querySelector("#current-view");
+const savedViewElement = document.querySelector("#saved-view");
+const settingsViewElement = document.querySelector("#settings-view");
+const currentArticleTab = document.querySelector("#current-article-tab");
+const savedTab = document.querySelector("#saved-tab");
+const settingsButton = document.querySelector("#settings-button");
+const closeSettingsButton = document.querySelector("#close-settings");
+const savedListElement = document.querySelector("#saved-list");
+const savedEmptyElement = document.querySelector("#saved-empty");
+const clearSavedButton = document.querySelector("#clear-saved");
 const CACHE_PREFIX = "summary-cache:";
+const SETTINGS_KEY = "summary-settings";
 const SUMMARY_FORMAT_VERSION = 3;
 const CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const STATUS_DISPLAY_TIME_MS = 3000;
@@ -105,9 +116,71 @@ async function cacheSummary(article, summaryLength, result) {
   await chrome.storage.local.set({
     [getCacheKey(article, summaryLength)]: {
       createdAt: Date.now(),
+      article: {
+        title: article.title || result.title || "Onbekend artikel",
+        url: article.url || ""
+      },
       result
     }
   });
+}
+
+async function getSavedSummaries() {
+      if (!hasStorage()) {
+        return [];
+}
+      const stored = await chrome.storage.local.get();
+      return Object.entries(stored)
+        .filter(([key, entry]) => key.startsWith(CACHE_PREFIX) && entry?.result)
+        .sort(([, first], [, second]) => second.createdAt - first.createdAt);
+    }
+
+function setView(view) {
+      const settings = view === "settings";
+      const saved = view === "saved";
+      currentViewElement.hidden = settings || saved;
+      savedViewElement.hidden = settings || !saved;
+      settingsViewElement.hidden = !settings;
+      currentArticleTab.classList.toggle("label-active", !settings && !saved);
+      savedTab.classList.toggle("label-active", saved);
+      currentArticleTab.setAttribute("aria-selected", String(!settings && !saved));
+      savedTab.setAttribute("aria-selected", String(saved));
+      if (saved) {
+        void renderSavedSummaries();
+}
+    }
+
+async function renderSavedSummaries() {
+      const entries = await getSavedSummaries();
+      savedListElement.replaceChildren(
+        ...entries.map(([key, entry]) => {
+          const item = document.createElement("li");
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "saved-item";
+          button.textContent = entry.article?.title || entry.result.title;
+          button.addEventListener("click", () => {
+            showResult(entry.result, entry.article);
+            setView("current");
+            setStatus("Opgeslagen samenvatting geladen.");
+          });
+          item.append(button);
+          return item;
+        })
+      );
+      savedEmptyElement.hidden = entries.length > 0;
+}
+
+async function loadSettings() {
+      if (!hasStorage()) {
+        return;
+      }
+      const stored = await chrome.storage.local.get(SETTINGS_KEY);
+      const length = stored[SETTINGS_KEY]?.summaryLength;
+      if (length === "2" || length === "4" || length === "6") {
+        summaryLengthElement.value = length;
+        updateSummaryLengthLabel();
+      }
 }
 
 async function clearExpiredCacheEntries() {
@@ -212,7 +285,27 @@ function updateSummaryLengthLabel() {
 
 summaryLengthElement.addEventListener("input", () => {
   updateSummaryLengthLabel();
+  if (hasStorage()) {
+    void chrome.storage.local.set({
+      [SETTINGS_KEY]: { summaryLength: summaryLengthElement.value }
+    });
+  }
   void summarizeArticle();
+});
+currentArticleTab.addEventListener("click", () => setView("current"));
+savedTab.addEventListener("click", () => setView("saved"));
+settingsButton.addEventListener("click", () => setView("settings"));
+closeSettingsButton.addEventListener("click", () => setView("current"));
+clearSavedButton.addEventListener("click", async () => {
+  if (!hasStorage()) {
+    return;
+  }
+  const keys = (await getSavedSummaries()).map(([key]) => key);
+  if (keys.length > 0) {
+    await chrome.storage.local.remove(keys);
+  }
+  await renderSavedSummaries();
+  setStatus("Opgeslagen samenvattingen gewist.");
 });
 copySummaryElement.addEventListener("click", () => {
   void copySummary();
@@ -298,5 +391,8 @@ async function summarizeArticle({ forceRefresh = false } = {}) {
 
 void clearExpiredCacheEntries().catch((error) => {
   console.warn("De lokale samenvattingscache kon niet worden opgeschoond.", error);
+});
+void loadSettings().catch((error) => {
+  console.warn("De instellingen konden niet worden geladen.", error);
 });
 void summarizeArticle();

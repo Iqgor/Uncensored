@@ -8,10 +8,15 @@
 
 body {
   position: relative;
-  width: 380px;
   margin: 0;
   color: #17233f;
   font: 14px/1.45 "DM Sans", sans-serif;
+  background:#FAF8F3;
+  width: 100%;
+  min-height: 100vh;
+  border: rgba(148, 163, 184, 0.28) solid 1px;
+  position: relative;
+
 }
 
 body::before {
@@ -26,27 +31,6 @@ body.loading::before {
   animation: loading-border 1.1s ease-in-out infinite;
 }
 
-
-
-@keyframes background-drift {
-  0% {
-    background-position: 100% 0, 0% 0%;
-  }
-
-  50% {
-    background-position: 72% 18%, 100% 45%;
-  }
-
-  100% {
-    background-position: 100% 8%, 15% 100%;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  main {
-    animation: none;
-  }
-}
 
 @keyframes loading-border {
 
@@ -66,27 +50,177 @@ body.loading::before {
   }
 }
 
-main {
-  min-height: 260px;
-  padding: 20px;
-  border: rgba(148, 163, 184, 0.28) solid 1px;
-  position: relative;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 100% 0, rgba(129, 140, 248, 0.3), transparent 80%),
-    linear-gradient(145deg, #eef5ff 0%, #f7f3ff 52%, #fff 100%);
-  background-size: 145% 145%, 180% 180%;
-  animation: background-drift 16s ease-in-out infinite alternate;
-
-}
-
 h1 {
   margin: 0 0 4px;
   color: #1D2128;
-  font-size: 32px;
+  font-size: 26px;
   letter-spacing: -0.025em;
-  text-transform: uppercase;
+  font-weight: 700;
+  font-family: "Inter", "Lora", serif;
 }
+
+header{
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 20px 20px 0px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.28);
+
+}
+
+header > section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+header > section:last-of-type{
+  justify-content: flex-start;
+}
+
+header > section:last-of-type span{
+  padding-bottom: 2px;
+}
+
+
+header .label-active{
+  color: #5967c8;
+  font-weight: bold;
+  border-bottom: 2px solid #5967c8;
+}
+
+.view-tabs {
+  gap: 16px;
+}
+
+.tab-button,
+.text-button,
+.icon-button {
+  border: 0;
+  color: #536176;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.tab-button {
+  padding: 0 0 6px;
+}
+
+.tab-button:hover,
+.tab-button:focus-visible,
+.text-button:hover,
+.text-button:focus-visible,
+.icon-button:hover,
+.icon-button:focus-visible {
+  color: #5967c8;
+}
+
+.icon-button {
+  display: grid;
+  place-items: center;
+  margin-left: auto;
+  padding: 5px;
+  border-radius: 7px;
+}
+
+.icon-button:focus-visible,
+.tab-button:focus-visible,
+.text-button:focus-visible,
+.saved-item:focus-visible,
+.settings-option select:focus-visible {
+  outline: 3px solid rgba(89, 103, 200, 0.24);
+  outline-offset: 2px;
+}
+
+.bi-list:hover{
+  cursor: pointer;
+}
+.bi-list:hover .bi-list-path {
+  fill: #5967c8;
+  transition: fill 0.23s ease;
+  
+}
+
+main {
+  min-height: 260px;
+  padding: 20px;
+}
+
+.view-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.view-heading h2 {
+  color: #172554;
+  font-size: 19px;
+}
+
+.text-button {
+  color: #4755a6;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.saved-list {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.saved-item {
+  width: 100%;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 8px;
+  padding: 11px 12px;
+  color: #334155;
+  background: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.saved-item:hover {
+  border-color: rgba(89, 103, 200, 0.5);
+  background: rgba(129, 140, 248, 0.1);
+}
+
+.empty-state,
+.settings-help {
+  color: #68759a;
+  font-size: 13px;
+}
+
+.settings-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #334155;
+  font-weight: 600;
+}
+
+.settings-option select {
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  border-radius: 6px;
+  padding: 5px 8px;
+  color: #334155;
+  background: #fff;
+  font: inherit;
+}
+
+.settings-help {
+  margin-top: 12px;
+}
+
 
 .length-label {
   display: flex;
@@ -223,7 +357,7 @@ input[type="range"]:focus-visible {
 }
 
 #status-modal::backdrop {
-  background: transparent;
+  display: none;
 }
 
 #status-modal:focus {
