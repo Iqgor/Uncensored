@@ -5,7 +5,7 @@ codebijdragen zijn welkom.
 
 ## Lokaal opzetten
 
-1. Installeer Node.js 18 of nieuwer.
+1. Installeer Node.js 20 (LTS) of nieuwer.
 2. Installeer de afhankelijkheden:
 
    ```powershell
@@ -22,18 +22,31 @@ codebijdragen zijn welkom.
 
 ## Wijzigingen controleren
 
-Voer voor een pull request minimaal de relevante controles uit:
+Voer voor een pull request minimaal dezelfde controles uit als in CI:
 
 ```powershell
 cd C:\Uncensored\extension
+npm ci
 npm run build
 cd ..\server
+npm ci
 node --check server.js
+cd ..\
+node --check extension\background.js
+node --check extension\content-source.js
+node --check extension\popup.js
+git diff --exit-code -- extension/content.js
 ```
 
 Beschrijf in de pull request wat je hebt getest en vermeld bekende beperkingen.
 Houd pull requests klein en gericht. Voeg waar mogelijk documentatie en
 reproductiestappen toe.
+
+## Releasepakket
+
+Releases worden opgebouwd door GitHub Actions via tags in de vorm `vX.Y.Z`. De
+workflow valideert dat `extension/manifest.json` dezelfde versie bevat en uploadt
+zowel een unpacked extensiemap als een zip-artefact met die versie.
 
 ## Issues en pull requests
 

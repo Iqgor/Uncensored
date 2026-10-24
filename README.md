@@ -13,7 +13,7 @@ vroege MVP en staat open voor feedback, bugreports en bijdragen.
 
 ## Lokaal starten
 
-1. Installeer Node.js 18 of nieuwer.
+1. Installeer Node.js 20 (LTS) of nieuwer.
 2. Installeer de extensie-afhankelijkheden en bouw het content script:
 
    ```powershell
@@ -33,6 +33,12 @@ vroege MVP en staat open voor feedback, bugreports en bijdragen.
 5. Zet **Developer mode** aan.
 6. Kies **Load unpacked** en selecteer `C:\Uncensored\extension`.
 7. Open een nieuwsartikel en klik op de extensie.
+
+### Ondersteunde omgeving
+
+- **Node.js:** CI draait op Node.js 20 en lokale checks horen daarop aan te sluiten.
+- **Browser:** Google Chrome op desktop met **Manifest V3**-ondersteuning (de
+  extensie gebruikt een MV3 service worker en Side Panel).
 
 De server gebruikt Gemini voor samenvattingen. Voeg API-sleutels nooit toe aan
 de extensie zelf; gebruik daarvoor altijd de backend.
@@ -141,7 +147,34 @@ Ideeën, bugreports en pull requests zijn welkom. Lees eerst
 bijdragen. Gebruik de issue-sjablonen voor gerichte bugreports en feature
 requests.
 
+## CI-validatie
+
+Pull requests draaien automatisch `.github/workflows/ci.yml` met dezelfde stappen
+als lokaal:
+
+```powershell
+cd C:\Uncensored\extension
+npm ci
+npm run build
+cd ..\server
+npm ci
+node --check server.js
+cd ..\
+node --check extension\background.js
+node --check extension\content-source.js
+node --check extension\popup.js
+git diff --exit-code -- extension/content.js
+```
+
+Hiermee faalt de check direct wanneer de gegenereerde `extension/content.js` niet
+meer overeenkomt met `extension/content-source.js`.
+
 ## Release
 
-De huidige stabiele MVP-release is
-[v0.1.0](https://github.com/Iqgor/Uncensored/releases/tag/v0.1.0).
+Bij een tag `vX.Y.Z` draait `.github/workflows/release.yml` en maakt:
+
+- een versie-map `uncensored-extension-vX.Y.Z` (unpacked extension);
+- een reproduceerbare zip `uncensored-extension-vX.Y.Z.zip`.
+
+De workflow faalt als `extension/manifest.json` een andere versie bevat dan de
+release-tag (zonder `v`), zodat packageversie en releaseversie gelijk blijven.
