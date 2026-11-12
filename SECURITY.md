@@ -4,7 +4,8 @@
 
 | Versie | Ondersteuning |
 | --- | --- |
-| `0.1.x` | Ja |
+| `0.2.x` | Ja |
+| `0.1.x` | Nee |
 
 ## Een kwetsbaarheid melden
 

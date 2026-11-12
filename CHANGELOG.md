@@ -2,6 +2,11 @@
 
 Alle noemenswaardige wijzigingen aan dit project worden hier bijgehouden.
 
+## [0.2.0] - 2026-11-12
+
+Verbeterde release met duidelijkere artikelherkenning en metadata in de
+zijbalk.
+
 ## [0.1.0] - 2026-10-16
 
 Eerste publieke MVP-release.

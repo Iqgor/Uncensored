@@ -11,7 +11,7 @@
 <body>
   <header>
     <section>
-      <h1>Uncensored</h1>
+      <h1>Digst</h1>
 
       <button id="settings-button" class="icon-button" type="button" aria-label="Instellingen" title="Instellingen">
 
@@ -41,6 +41,31 @@
         <p id="status-message" class="error-message" role="alert" hidden></p>
         <p id="paywall-warning" role="alert" hidden></p>
       </div>
+
+      <section id="article-detected" class="article-detected" aria-labelledby="article-detected-title" hidden>
+        <div class="detected-label">
+          <span>
+            <span class="detected-check" aria-hidden="true">✓</span>
+            <span>Artikel gedetecteerd</span>
+          </span>
+          <p id="detected-reading-time" class="detected-reading-time"></p>
+        </div>
+        <h2 id="article-detected-title"></h2>
+        <p class="detected-source">
+          <span id="detected-source"></span>
+          <span aria-hidden="true"> · </span>
+          <a id="detected-url" href="#" target="_blank" rel="noopener noreferrer"></a>
+        </p>
+        <button id="summarize-article" class="summarize-button" type="button">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M12.8526 0.851302V2.18458M12.8526 2.18458V3.51786M12.8526 2.18458H14.186M12.8526 2.18458H11.5192M6.86342 1.39424C6.89199 1.24132 6.97315 1.1032 7.09284 1.0038C7.21253 0.904409 7.36322 0.85 7.51881 0.85C7.6744 0.85 7.82508 0.904409 7.94478 1.0038C8.06447 1.1032 8.14563 1.24132 8.17419 1.39424L8.87492 5.09943C8.92468 5.36285 9.05271 5.60515 9.2423 5.79472C9.43188 5.98428 9.67422 6.11229 9.93767 6.16205L13.6433 6.86269C13.7962 6.89126 13.9344 6.9724 14.0338 7.09208C14.1332 7.21176 14.1876 7.36243 14.1876 7.518C14.1876 7.67357 14.1332 7.82424 14.0338 7.94392C13.9344 8.0636 13.7962 8.14474 13.6433 8.17331L9.93767 8.87395C9.67422 8.92371 9.43188 9.05172 9.2423 9.24129C9.05271 9.43085 8.92468 9.67315 8.87492 9.93657L8.17419 13.6418C8.14563 13.7947 8.06447 13.9328 7.94478 14.0322C7.82508 14.1316 7.6744 14.186 7.51881 14.186C7.36322 14.186 7.21253 14.1316 7.09284 14.0322C6.97315 13.9328 6.89199 13.7947 6.86342 13.6418L6.1627 9.93657C6.11293 9.67315 5.9849 9.43085 5.79531 9.24129C5.60573 9.05172 5.3634 8.92371 5.09995 8.87395L1.39431 8.17331C1.24137 8.14474 1.10323 8.0636 1.00383 7.94392C0.904421 7.82424 0.850006 7.67357 0.850006 7.518C0.850006 7.36243 0.904421 7.21176 1.00383 7.09208C1.10323 6.9724 1.24137 6.89126 1.39431 6.86269L5.09995 6.16205C5.3634 6.11229 5.60573 5.98428 5.79531 5.79472C5.9849 5.60515 6.11293 5.36285 6.1627 5.09943L6.86342 1.39424ZM3.51852 12.8508C3.51852 13.5872 2.92151 14.1841 2.18507 14.1841C1.44864 14.1841 0.851634 13.5872 0.851634 12.8508C0.851634 12.1145 1.44864 11.5175 2.18507 11.5175C2.92151 11.5175 3.51852 12.1145 3.51852 12.8508Z"
+              stroke-width="1.7" stroke-linecap="round" stroke="#3b3c3d" />
+          </svg>
+
+          Artikel samenvatten
+        </button>
+      </section>
 
       <section id="result" hidden class="result">
         <div class="meta-header" aria-label="Artikelinformatie">
@@ -73,14 +98,21 @@
         <p class="disclaimer">AI-samenvatting. Controleer belangrijke informatie in de originele bron.</p>
       </section>
       <div id="result-actions" class="result-actions" aria-label="Acties" hidden>
-        <button id="copy-summary" type="button" aria-label="Samenvatting kopiëren" title="Samenvatting kopiëren">
+        <button id="copy-summary" type="button" aria-label="Samenvatting kopiëren" title="Samenvatting kopiëren"
+          disabled>
           <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
             <rect x="8" y="8" width="12" height="12" rx="2"></rect>
             <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path>
           </svg>
         </button>
+        <button id="save-summary" type="button" aria-label="Samenvatting opslaan" title="Samenvatting opslaan"
+          aria-pressed="false" disabled>
+          <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+            <path d="M6 4.5a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v16l-6-3.5-6 3.5v-16Z"></path>
+          </svg>
+        </button>
         <button id="retry-summary" class="retry-action" type="button" aria-label="Opnieuw proberen"
-          title="Opnieuw proberen" hidden>
+          title="Opnieuw proberen" hidden disabled>
           <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
             <path d="M20 11a8 8 0 1 0 2 5.3"></path>
             <path d="M20 5v6h-6"></path>
@@ -101,9 +133,9 @@
         <p>
           De artikeltekst wordt tijdelijk naar de lokale backend gestuurd en
           voor de samenvatting doorgestuurd naar Google Gemini. Samenvattingen
-          worden maximaal 7 dagen lokaal in Chrome opgeslagen, zodat dezelfde
-          pagina niet opnieuw hoeft te worden verwerkt. Alleen technische
-          verzoekgegevens worden gelogd.
+          worden alleen in Chrome opgeslagen wanneer je op het
+          bladwijzericoon klikt. Alleen technische verzoekgegevens worden
+          gelogd.
         </p>
       </details>
     </section>
