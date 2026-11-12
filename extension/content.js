@@ -1908,12 +1908,60 @@
       )
     ].some(hasPremiumText);
   }
+  function getJsonLdArticle() {
+    const scripts = document.querySelectorAll(
+      "script[type='application/ld+json']"
+    );
+    for (const script of scripts) {
+      try {
+        const data = JSON.parse(script.textContent || "");
+        const items = Array.isArray(data) ? data : Array.isArray(data?.["@graph"]) ? data["@graph"] : [data];
+        const article = items.find(
+          (item) => /article|newsarticle|reportage/i.test(item?.["@type"] || "")
+        );
+        if (article) {
+          return article;
+        }
+      } catch (_error) {
+      }
+    }
+    return null;
+  }
+  function getMetaContent(...selectors) {
+    for (const selector of selectors) {
+      const value = document.querySelector(selector)?.getAttribute("content");
+      if (value?.trim()) {
+        return value.trim();
+      }
+    }
+    return "";
+  }
+  function extractMetadata() {
+    const jsonLdArticle = getJsonLdArticle();
+    const publisher = typeof jsonLdArticle?.publisher === "object" ? jsonLdArticle.publisher?.name : jsonLdArticle?.publisher;
+    const source = publisher || getMetaContent("meta[property='og:site_name']", "meta[name='application-name']") || window.location.hostname.replace(/^www\./, "");
+    const category = jsonLdArticle?.articleSection;
+    return {
+      publishedAt: jsonLdArticle?.datePublished || getMetaContent(
+        "meta[property='article:published_time']",
+        "meta[name='datePublished']",
+        "meta[name='publishdate']"
+      ) || document.querySelector("time[datetime]")?.getAttribute("datetime") || "",
+      source,
+      category: (Array.isArray(category) ? category.join(", ") : category) || getMetaContent(
+        "meta[property='article:section']",
+        "meta[name='article:section']",
+        "meta[name='category']"
+      ) || "Nieuws"
+    };
+  }
   function createArticle(title, text, paywallDetected) {
     return {
       title,
       url: window.location.href,
       text,
-      paywallDetected
+      paywallDetected,
+      ...extractMetadata()
     };
   }
   function extractArticle() {

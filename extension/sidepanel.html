@@ -30,32 +30,72 @@
     <section class="view-tabs" role="tablist" aria-label="Samenvattingen">
       <button id="current-article-tab" class="tab-button label-active" type="button" role="tab"
         aria-selected="true">Huidig artikel</button>
-      <button id="saved-tab" class="tab-button" type="button" role="tab" aria-selected="false">Opgeslagen</button>
+      <button id="saved-tab" class="tab-button" type="button" role="tab" aria-selected="false">
+        Opgeslagen <span id="saved-count" class="saved-count" aria-hidden="true">0</span>
+      </button>
     </section>
   </header>
   <main>
     <section id="current-view" role="tabpanel">
-      <dialog id="status-modal" aria-labelledby="status-message">
-        <p id="status-message" role="status"></p>
-      </dialog>
+      <div>
+        <p id="status-message" class="error-message" role="alert" hidden></p>
+        <p id="paywall-warning" role="alert" hidden></p>
+      </div>
 
-      <p id="paywall-warning" role="alert" hidden></p>
       <section id="result" hidden class="result">
+        <div class="meta-header" aria-label="Artikelinformatie">
+          <div>
+            <span id="article-source" class="meta-item meta-item-highlight" hidden></span>
+            <span id="article-category" class="meta-item" hidden></span>
+          </div>
+          <span id="article-date" class="meta-item" hidden></span>
+
+        </div>
         <h2 id="result-title"></h2>
-        <div class="result-actions" aria-label="Acties">
-          <button id="copy-summary" type="button">Samenvatting kopiëren</button>
-          <a id="original-article" href="#" target="_blank" rel="noopener noreferrer" hidden>
-            Origineel artikel openen
-          </a>
+        <div class="time saved" aria-label="Artikelinformatie">
+          <span id="time-saved" class="meta-item meta-item-highlight reading-time" hidden>
+            <svg class="reading-time-icon" aria-hidden="true" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="8.5"></circle>
+              <path d="M12 7v5l3 2"></path>
+            </svg>
+            <span id="original-reading-time"></span>
+            <svg class="reading-time-arrow" aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M5 12h13"></path>
+              <path d="m13 7 5 5-5 5"></path>
+            </svg>
+            <span id="summary-reading-time"></span>
+            <span class="reading-time-saved"><span id="minutes-saved"></span> bespaard</span>
+          </span>
         </div>
         <div id="summary"></div>
         <h3>Belangrijkste punten</h3>
         <ul id="key-points"></ul>
         <p class="disclaimer">AI-samenvatting. Controleer belangrijke informatie in de originele bron.</p>
       </section>
-      <button id="retry-summary" class="retry-action" type="button" hidden>
-        Opnieuw proberen
-      </button>
+      <div id="result-actions" class="result-actions" aria-label="Acties" hidden>
+        <button id="copy-summary" type="button" aria-label="Samenvatting kopiëren" title="Samenvatting kopiëren">
+          <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+            <rect x="8" y="8" width="12" height="12" rx="2"></rect>
+            <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path>
+          </svg>
+        </button>
+        <button id="retry-summary" class="retry-action" type="button" aria-label="Opnieuw proberen"
+          title="Opnieuw proberen" hidden>
+          <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+            <path d="M20 11a8 8 0 1 0 2 5.3"></path>
+            <path d="M20 5v6h-6"></path>
+          </svg>
+        </button>
+        <a id="original-article" href="#" target="_blank" rel="noopener noreferrer" hidden>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M11.3328 11.3328V4.66721H4.6672M11.3328 4.66721L4.6672 11.3328" stroke-width="1.7"
+              stroke-linecap="round" />
+          </svg>
+          <span>
+            Lees origineel
+          </span>
+        </a>
+      </div>
       <details class="privacy-note">
         <summary>Privacy</summary>
         <p>

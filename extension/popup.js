@@ -1,12 +1,19 @@
 const summaryLengthElement = document.querySelector("#summary-length");
 const summaryLengthValueElement = document.querySelector("#summary-length-value");
-const statusModalElement = document.querySelector("#status-modal");
 const statusElement = document.querySelector("#status-message");
 const resultElement = document.querySelector("#result");
 const titleElement = document.querySelector("#result-title");
+const articleDateElement = document.querySelector("#article-date");
+const articleSourceElement = document.querySelector("#article-source");
+const articleCategoryElement = document.querySelector("#article-category");
+const timeSavedElement = document.querySelector("#time-saved");
+const originalReadingTimeElement = document.querySelector("#original-reading-time");
+const summaryReadingTimeElement = document.querySelector("#summary-reading-time");
+const minutesSavedElement = document.querySelector("#minutes-saved");
 const paywallWarningElement = document.querySelector("#paywall-warning");
 const summaryElement = document.querySelector("#summary");
 const keyPointsElement = document.querySelector("#key-points");
+const resultActionsElement = document.querySelector("#result-actions");
 const copySummaryElement = document.querySelector("#copy-summary");
 const retrySummaryElement = document.querySelector("#retry-summary");
 const originalArticleElement = document.querySelector("#original-article");
@@ -15,6 +22,7 @@ const savedViewElement = document.querySelector("#saved-view");
 const settingsViewElement = document.querySelector("#settings-view");
 const currentArticleTab = document.querySelector("#current-article-tab");
 const savedTab = document.querySelector("#saved-tab");
+const savedCountElement = document.querySelector("#saved-count");
 const settingsButton = document.querySelector("#settings-button");
 const closeSettingsButton = document.querySelector("#close-settings");
 const savedListElement = document.querySelector("#saved-list");
@@ -24,33 +32,9 @@ const CACHE_PREFIX = "summary-cache:";
 const SETTINGS_KEY = "summary-settings";
 const SUMMARY_FORMAT_VERSION = 3;
 const CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
-const STATUS_DISPLAY_TIME_MS = 3000;
-let statusTimer;
-let currentStatus = "";
-
-function setStatus(message) {
-  if (message === currentStatus) {
-    return;
-  }
-  currentStatus = message;
-  window.clearTimeout(statusTimer);
-  if (!message) {
-    if (statusModalElement.open) {
-      statusModalElement.close();
-    }
-    statusElement.textContent = "";
-    return;
-  }
-
+function showError(message) {
   statusElement.textContent = message;
-  if (!statusModalElement.open) {
-    statusModalElement.showModal();
-  }
-  statusTimer = window.setTimeout(() => {
-    if (statusModalElement.open) {
-      statusModalElement.close();
-    }
-  }, STATUS_DISPLAY_TIME_MS);
+  statusElement.hidden = !message;
 }
 
 function getErrorMessage(error, fallback) {
@@ -118,7 +102,11 @@ async function cacheSummary(article, summaryLength, result) {
       createdAt: Date.now(),
       article: {
         title: article.title || result.title || "Onbekend artikel",
-        url: article.url || ""
+        url: article.url || "",
+        publishedAt: article.publishedAt || "",
+        source: article.source || "",
+        category: article.category || "",
+        wordCount: article.wordCount || 0
       },
       result
     }
@@ -128,12 +116,20 @@ async function cacheSummary(article, summaryLength, result) {
 async function getSavedSummaries() {
       if (!hasStorage()) {
         return [];
-}
+      }
       const stored = await chrome.storage.local.get();
       return Object.entries(stored)
         .filter(([key, entry]) => key.startsWith(CACHE_PREFIX) && entry?.result)
         .sort(([, first], [, second]) => second.createdAt - first.createdAt);
     }
+
+function updateSavedCount(count) {
+  savedCountElement.textContent = String(count);
+  savedCountElement.setAttribute(
+    "aria-label",
+    `${count} opgeslagen samenvatting${count === 1 ? "" : "en"}`
+  );
+}
 
 function setView(view) {
       const settings = view === "settings";
@@ -151,24 +147,24 @@ function setView(view) {
     }
 
 async function renderSavedSummaries() {
-      const entries = await getSavedSummaries();
-      savedListElement.replaceChildren(
-        ...entries.map(([key, entry]) => {
-          const item = document.createElement("li");
-          const button = document.createElement("button");
-          button.type = "button";
-          button.className = "saved-item";
-          button.textContent = entry.article?.title || entry.result.title;
-          button.addEventListener("click", () => {
-            showResult(entry.result, entry.article);
-            setView("current");
-            setStatus("Opgeslagen samenvatting geladen.");
-          });
-          item.append(button);
-          return item;
-        })
-      );
-      savedEmptyElement.hidden = entries.length > 0;
+  const entries = await getSavedSummaries();
+  updateSavedCount(entries.length);
+  savedListElement.replaceChildren(
+    ...entries.map(([key, entry]) => {
+      const item = document.createElement("li");
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "saved-item";
+      button.textContent = entry.article?.title || entry.result.title;
+      button.addEventListener("click", () => {
+        showResult(entry.result, entry.article);
+        setView("current");
+      });
+      item.append(button);
+      return item;
+    })
+  );
+  savedEmptyElement.hidden = entries.length > 0;
 }
 
 async function loadSettings() {
@@ -200,6 +196,36 @@ async function clearExpiredCacheEntries() {
   if (expiredKeys.length > 0) {
     await chrome.storage.local.remove(expiredKeys);
   }
+  const entries = await getSavedSummaries();
+  updateSavedCount(entries.length);
+}
+
+function countWords(value = "") {
+  return value.trim() ? value.trim().split(/\s+/).length : 0;
+}
+
+function formatPublishedDate(value) {
+  if (!value) {
+    return "";
+  }
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? value
+    : new Intl.DateTimeFormat("nl-NL", {
+        dateStyle: "medium",
+        timeStyle: "short"
+      }).format(date);
+}
+
+function getReadingMinutes(wordCount) {
+  return Math.round((wordCount / 200) * 10) / 10;
+}
+
+function formatCompactReadingTime(minutes) {
+  if (minutes < 1) {
+    return `${Math.max(1, Math.round(minutes * 60))} sec`;
+  }
+  return `${Math.max(1, Math.round(minutes))} min`;
 }
 
 function showResult(result, article = {}) {
@@ -207,22 +233,60 @@ function showResult(result, article = {}) {
     throw new Error("De server gaf een ongeldig samenvattingsresultaat.");
   }
 
+  const paragraphs = result.summary
+    .replace(/\.\s+/g, ".\n\n")
+    .split(/\r?\n\s*\r?\n/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+  if (paragraphs.length > 3) {
+    paragraphs.splice(2, paragraphs.length - 2, paragraphs.slice(2).join(" "));
+  }
+
   titleElement.textContent = result.title || "Samenvatting";
+  const metadata = [
+    [articleDateElement, formatPublishedDate(article.publishedAt), ""],
+    [articleSourceElement, article.source],
+    [articleCategoryElement, article.category]
+  ];
+  metadata.forEach(([element, value]) => {
+    element.hidden = !value;
+    element.textContent = value ? `${value}` : "";
+  });
+  const originalWords = article.wordCount || countWords(article.text);
+  const summaryWords = countWords(
+    `${result.summary} ${result.keyPoints.join(" ")}`
+  );
+  const originalReadingMinutes = getReadingMinutes(originalWords);
+  const summaryReadingMinutes = getReadingMinutes(summaryWords);
+  const minutesSaved = Math.max(0, originalReadingMinutes - summaryReadingMinutes);
+  timeSavedElement.hidden = !originalWords;
+  originalReadingTimeElement.textContent = originalWords
+    ? `${formatCompactReadingTime(originalReadingMinutes)} lezen`
+    : "";
+  summaryReadingTimeElement.textContent = originalWords
+    ? `${formatCompactReadingTime(summaryReadingMinutes)} samenvatting`
+    : "";
+  minutesSavedElement.textContent = originalWords
+    ? formatCompactReadingTime(minutesSaved)
+    : "";
+  timeSavedElement.setAttribute(
+    "aria-label",
+    originalWords
+      ? `${formatCompactReadingTime(originalReadingMinutes)} lezen, ${formatCompactReadingTime(
+          summaryReadingMinutes
+        )} samenvatting, ${formatCompactReadingTime(minutesSaved)} bespaard`
+      : "Leestijd niet beschikbaar"
+  );
   paywallWarningElement.hidden = !article.paywallDetected;
   paywallWarningElement.textContent = article.paywallDetected
     ? "Let op: deze pagina lijkt een paywall te bevatten. De samenvatting is mogelijk gebaseerd op onvolledige artikeltekst."
     : "";
   summaryElement.replaceChildren(
-    ...result.summary
-      .replace(/\.\s+/g, ".\n\n")
-      .split(/\r?\n\s*\r?\n/)
-      .map((paragraph) => paragraph.trim())
-      .filter(Boolean)
-      .map((paragraph) => {
-        const element = document.createElement("p");
-        element.textContent = paragraph;
-        return element;
-      })
+    ...paragraphs.map((paragraph) => {
+      const element = document.createElement("p");
+      element.textContent = paragraph;
+      return element;
+    })
   );
   originalArticleElement.hidden = !article.url;
   if (article.url) {
@@ -236,6 +300,7 @@ function showResult(result, article = {}) {
     })
   );
   resultElement.hidden = false;
+  resultActionsElement.hidden = false;
 }
 
 function getSummaryText() {
@@ -254,9 +319,8 @@ function getSummaryText() {
 async function copySummary() {
   try {
     await navigator.clipboard.writeText(getSummaryText());
-    setStatus("Samenvatting gekopieerd.");
   } catch (error) {
-    setStatus(
+    showError(
       getErrorMessage(error, "De samenvatting kon niet worden gekopieerd.")
     );
   }
@@ -305,7 +369,6 @@ clearSavedButton.addEventListener("click", async () => {
     await chrome.storage.local.remove(keys);
   }
   await renderSavedSummaries();
-  setStatus("Opgeslagen samenvattingen gewist.");
 });
 copySummaryElement.addEventListener("click", () => {
   void copySummary();
@@ -317,8 +380,9 @@ updateSummaryLengthLabel();
 
 async function summarizeArticle({ forceRefresh = false } = {}) {
   document.body.classList.add("loading");
-  setStatus("");
+  showError("");
   resultElement.hidden = true;
+  resultActionsElement.hidden = true;
   paywallWarningElement.hidden = true;
   copySummaryElement.disabled = true;
   retrySummaryElement.disabled = true;
@@ -327,7 +391,6 @@ async function summarizeArticle({ forceRefresh = false } = {}) {
   try {
     if (!globalThis.chrome?.tabs?.query) {
       showResult(previewResult);
-      setStatus("Previewmodus: deze pagina is niet geopend als Chrome-extensie.");
       return;
     }
 
@@ -349,13 +412,13 @@ async function summarizeArticle({ forceRefresh = false } = {}) {
         "Er is geen geschikt nieuwsartikel gevonden op deze pagina."
       );
     }
+    article.wordCount = countWords(article.text);
 
     const summaryLength = Number(summaryLengthElement.value);
     if (!forceRefresh) {
       const cached = await getCachedSummary(article, summaryLength);
       if (cached) {
         showResult(cached.result, article);
-        setStatus("Lokale samenvatting geladen.");
         return;
       }
     }
@@ -375,12 +438,12 @@ async function summarizeArticle({ forceRefresh = false } = {}) {
     showResult(response.data, article);
     try {
       await cacheSummary(article, summaryLength, response.data);
+      void renderSavedSummaries();
     } catch (error) {
       console.warn("De lokale samenvatting kon niet worden opgeslagen.", error);
     }
-    setStatus("");
   } catch (error) {
-    setStatus(getErrorMessage(error, "Er ging iets mis bij het samenvatten."));
+    showError(getErrorMessage(error, "Er ging iets mis bij het samenvatten."));
   } finally {
     copySummaryElement.disabled = false;
     retrySummaryElement.disabled = false;
@@ -392,6 +455,11 @@ async function summarizeArticle({ forceRefresh = false } = {}) {
 void clearExpiredCacheEntries().catch((error) => {
   console.warn("De lokale samenvattingscache kon niet worden opgeschoond.", error);
 });
+void getSavedSummaries()
+  .then((entries) => updateSavedCount(entries.length))
+  .catch((error) => {
+    console.warn("Het aantal opgeslagen samenvattingen kon niet worden geladen.", error);
+  });
 void loadSettings().catch((error) => {
   console.warn("De instellingen konden niet worden geladen.", error);
 });
