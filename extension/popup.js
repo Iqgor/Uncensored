@@ -35,9 +35,16 @@ const closeSettingsButton = document.querySelector("#close-settings");
 const savedListElement = document.querySelector("#saved-list");
 const savedEmptyElement = document.querySelector("#saved-empty");
 const clearSavedButton = document.querySelector("#clear-saved");
+const backendUrlElement = document.querySelector("#backend-url");
+const backendUrlStatusElement = document.querySelector("#backend-url-status");
+const aiProviderElement = document.querySelector("#ai-provider");
+const aiProviderStatusElement = document.querySelector("#ai-provider-status");
 const SAVED_PREFIX = "saved-summary:";
 const LEGACY_CACHE_PREFIX = "summary-cache:";
 const SETTINGS_KEY = "summary-settings";
+const BACKEND_URL_KEY = "backend-url";
+const DEFAULT_BACKEND_URL = "http://localhost:8787";
+const AI_PROVIDER_KEY = "ai-provider";
 const SUMMARY_FORMAT_VERSION = 3;
 let currentArticle = null;
 let currentResult = null;
@@ -181,12 +188,67 @@ async function loadSettings() {
       if (!hasStorage()) {
         return;
       }
-      const stored = await chrome.storage.local.get(SETTINGS_KEY);
+      const stored = await chrome.storage.local.get([
+        SETTINGS_KEY,
+        BACKEND_URL_KEY
+      ]);
       const length = stored[SETTINGS_KEY]?.summaryLength;
       if (length === "2" || length === "4" || length === "6") {
         summaryLengthElement.value = length;
         updateSummaryLengthLabel();
       }
+      const backendUrl = stored[BACKEND_URL_KEY];
+      backendUrlElement.value =
+        typeof backendUrl === "string" && backendUrl ? backendUrl : DEFAULT_BACKEND_URL;
+      await loadProviders();
+}
+
+async function loadProviders() {
+  aiProviderElement.replaceChildren();
+  aiProviderStatusElement.textContent = "Providers laden...";
+  try {
+    const response = await fetch(`${getBackendUrl(backendUrlElement.value)}/api/providers`);
+    if (!response.ok) {
+      throw new Error("De providers konden niet worden geladen.");
+    }
+    const data = await response.json();
+    const stored = await chrome.storage.local.get(AI_PROVIDER_KEY);
+    const preferred = stored[AI_PROVIDER_KEY];
+    const providers = Array.isArray(data.providers) ? data.providers : [];
+    if (providers.length === 0) {
+      aiProviderElement.add(new Option("Geen provider geconfigureerd", ""));
+      aiProviderStatusElement.textContent =
+        "Configureer een provider in server/.env.";
+      return;
+    }
+    for (const provider of providers) {
+      aiProviderElement.add(
+        new Option(
+          `${provider.label}${provider.model ? ` - ${provider.model}` : ""}`,
+          provider.id
+        )
+      );
+    }
+    aiProviderElement.value =
+      providers.some((provider) => provider.id === preferred)
+        ? preferred
+        : data.defaultProvider;
+    aiProviderStatusElement.textContent = "";
+  } catch (error) {
+    aiProviderElement.add(new Option("Geen verbinding", ""));
+    aiProviderStatusElement.textContent = getErrorMessage(
+      error,
+      "De providers konden niet worden geladen."
+    );
+  }
+}
+
+function getBackendUrl(value) {
+  const url = new URL(value.trim());
+  if (!["http:", "https:"].includes(url.protocol) || url.username || url.password) {
+    throw new Error("Gebruik een geldige HTTP(S)-backend-URL zonder gebruikersnaam of wachtwoord.");
+  }
+  return url.toString().replace(/\/$/, "");
 }
 
 async function clearLegacyCacheEntries() {
@@ -389,6 +451,27 @@ summaryLengthElement.addEventListener("input", () => {
     });
   }
 });
+backendUrlElement.addEventListener("change", () => {
+  try {
+    const backendUrl = getBackendUrl(backendUrlElement.value);
+    backendUrlElement.value = backendUrl;
+    backendUrlStatusElement.textContent = "Backend-URL opgeslagen.";
+    if (hasStorage()) {
+      void chrome.storage.local.set({ [BACKEND_URL_KEY]: backendUrl });
+    }
+    void loadProviders();
+  } catch (error) {
+    backendUrlStatusElement.textContent = getErrorMessage(
+      error,
+      "Ongeldige backend-URL."
+    );
+  }
+});
+aiProviderElement.addEventListener("change", () => {
+  if (hasStorage()) {
+    void chrome.storage.local.set({ [AI_PROVIDER_KEY]: aiProviderElement.value });
+  }
+});
 currentArticleTab.addEventListener("click", () => setView("current"));
 savedTab.addEventListener("click", () => setView("saved"));
 settingsButton.addEventListener("click", () => setView("settings"));
@@ -444,7 +527,8 @@ async function summarizeArticle({ forceRefresh = false } = {}) {
       type: "SUMMARIZE_ARTICLE",
       article: {
         ...currentArticle,
-        summaryLength
+        summaryLength,
+        provider: aiProviderElement.value || undefined
       }
     });
 

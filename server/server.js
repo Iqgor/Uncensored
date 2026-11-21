@@ -4,6 +4,10 @@ import "dotenv/config";
 const port = Number(process.env.PORT || 8787);
 const geminiApiKey = process.env.GEMINI_API_KEY;
 const geminiModel = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const aiProvider = (process.env.AI_PROVIDER || "gemini").toLowerCase();
+const aiApiKey = process.env.AI_API_KEY;
+const aiModel = process.env.AI_MODEL;
+const aiBaseUrl = process.env.AI_BASE_URL;
 const isProduction = process.env.NODE_ENV === "production";
 const rateLimitWindowMs = Number(
   process.env.RATE_LIMIT_WINDOW_MS || 60_000
@@ -12,6 +16,8 @@ const rateLimitMaxRequests = Number(
   process.env.RATE_LIMIT_MAX_REQUESTS || 10
 );
 const rateLimitEntries = new Map();
+
+class UpstreamError extends Error {}
 
 function sendJson(response, statusCode, body) {
   response.writeHead(statusCode, {
@@ -85,15 +91,15 @@ function cleanArticleText(text) {
 
 function validateSummary(value, summaryLength) {
   if (!value || typeof value !== "object") {
-    throw new Error("De AI gaf geen geldig JSON-object terug.");
+    throw new UpstreamError("Gemini gaf geen geldige samenvatting terug.");
   }
 
   const summary = value;
   if (typeof summary.title !== "string" || !summary.title.trim()) {
-    throw new Error("De AI-respons bevat geen geldige titel.");
+    throw new UpstreamError("Gemini gaf geen geldige titel terug.");
   }
   if (typeof summary.summary !== "string" || !summary.summary.trim()) {
-    throw new Error("De AI-respons bevat geen geldige samenvatting.");
+    throw new UpstreamError("Gemini gaf geen geldige samenvatting terug.");
   }
   if (
     !Array.isArray(summary.keyPoints) ||
@@ -102,7 +108,7 @@ function validateSummary(value, summaryLength) {
       (point) => typeof point !== "string" || !point.trim()
     )
   ) {
-    throw new Error("De AI-respons bevat geen geldige kernpunten.");
+    throw new UpstreamError("Gemini gaf geen geldige kernpunten terug.");
   }
 
   return {
@@ -201,20 +207,152 @@ async function summarizeWithGemini(article, summaryLength) {
     clearTimeout(timeout);
   }
 
-  const data = await response.json();
+  const responseBody = await response.text();
+  let data;
+  try {
+    data = JSON.parse(responseBody);
+  } catch (_error) {
+    throw new UpstreamError("Gemini gaf geen geldige JSON-respons terug.");
+  }
   if (!response.ok) {
-    const providerMessage = data?.error?.message;
-    throw new Error(
-      providerMessage || `Gemini gaf HTTP-status ${response.status} terug.`
+    throw new UpstreamError(
+      `Gemini kon de samenvatting niet genereren (HTTP ${response.status}).`
     );
   }
 
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
   if (typeof text !== "string") {
-    throw new Error("Gemini gaf geen samenvatting terug.");
+    throw new UpstreamError("Gemini gaf geen samenvatting terug.");
   }
 
-  return validateSummary(JSON.parse(text), summaryLength);
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch (_error) {
+    throw new UpstreamError("Gemini gaf geen geldige JSON-samenvatting terug.");
+  }
+  return validateSummary(parsed, summaryLength);
+}
+
+function getProviderConfig(provider) {
+  if (provider === "gemini") {
+    return {
+      configured: isProduction || Boolean(geminiApiKey),
+      label: "Google Gemini",
+      model: geminiModel
+    };
+  }
+  if (provider === "openai-compatible") {
+    return {
+      configured: Boolean(aiBaseUrl && aiModel),
+      label: "OpenAI-compatible",
+      model: aiModel || ""
+    };
+  }
+  return { configured: false, label: provider, model: "" };
+}
+
+function getAvailableProviders() {
+  const requestedProvider = aiProvider;
+  const providers = ["gemini", "openai-compatible"]
+    .map((provider) => ({
+      id: provider,
+      ...getProviderConfig(provider)
+    }))
+    .filter((provider) => provider.configured);
+  const defaultProvider = providers.find(
+    (provider) => provider.id === requestedProvider
+  ) || providers[0];
+  return {
+    providers,
+    defaultProvider: defaultProvider?.id || ""
+  };
+}
+
+async function summarizeWithOpenAiCompatible(article, summaryLength) {
+  if (!aiBaseUrl || !aiModel) {
+    throw new Error(
+      "AI_BASE_URL en AI_MODEL ontbreken. Stel deze omgevingsvariabelen in voordat je de server start."
+    );
+  }
+
+  const endpoint = new URL(
+    aiBaseUrl.replace(/\/$/, "") + "/chat/completions"
+  );
+  const abortController = new AbortController();
+  const timeout = setTimeout(() => abortController.abort(), 30_000);
+  let response;
+  try {
+    response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(aiApiKey ? { Authorization: `Bearer ${aiApiKey}` } : {})
+      },
+      body: JSON.stringify({
+        model: aiModel,
+        temperature: 0.2,
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content:
+              "Je bent een nauwkeurige nieuwsredacteur. Detecteer eerst de taal van het aangeleverde artikel en schrijf de titel, samenvatting en kernpunten in diezelfde taal. Gebruik uitsluitend informatie uit het artikel. Voeg geen feiten toe en geef geen commentaar buiten het gevraagde JSON-formaat."
+          },
+          {
+            role: "user",
+            content: `Vat dit nieuwsartikel beknopt samen van maximaal 100 woorden met precies ${summaryLength} kernpunten. Schrijf de samenvatting als één kleine alinea. Antwoord uitsluitend met geldige JSON met titel, summary en keyPoints.\n\nTitel: ${article.title?.trim() || "Onbekend"}\n\nArtikel:\n${cleanArticleText(article.text)}`
+          }
+        ]
+      }),
+      signal: abortController.signal
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error("De AI-provider reageerde niet binnen 30 seconden.");
+    }
+    throw new Error("De AI-provider kon niet worden bereikt.");
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  const responseBody = await response.text();
+  let data;
+  try {
+    data = JSON.parse(responseBody);
+  } catch (_error) {
+    throw new UpstreamError("De AI-provider gaf geen geldige JSON-respons terug.");
+  }
+  if (!response.ok) {
+    throw new UpstreamError(
+      `De AI-provider kon de samenvatting niet genereren (HTTP ${response.status}).`
+    );
+  }
+
+  const text = data?.choices?.[0]?.message?.content;
+  if (typeof text !== "string") {
+    throw new UpstreamError("De AI-provider gaf geen samenvatting terug.");
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch (_error) {
+    throw new UpstreamError("De AI-provider gaf geen geldige JSON-samenvatting terug.");
+  }
+  return validateSummary(parsed, summaryLength);
+}
+
+async function summarizeWithProvider(provider, article, summaryLength) {
+  if (isProduction) {
+    return getProductionMockupSummary(summaryLength);
+  }
+  if (provider === "openai-compatible") {
+    return summarizeWithOpenAiCompatible(article, summaryLength);
+  }
+  if (provider === "gemini") {
+    return summarizeWithGemini(article, summaryLength);
+  }
+  throw new Error("Ongeldige AI-provider.");
 }
 
 function readBody(request) {
@@ -243,6 +381,12 @@ const server = http.createServer(async (request, response) => {
     });
     response.end();
     logRequest(request, 204, startedAt);
+    return;
+  }
+
+  if (request.method === "GET" && request.url === "/api/providers") {
+    sendJson(response, 200, getAvailableProviders());
+    logRequest(request, 200, startedAt);
     return;
   }
 
@@ -282,7 +426,24 @@ const server = http.createServer(async (request, response) => {
       return;
     }
 
-    sendJson(response, 200, await summarizeWithGemini(article, summaryLength));
+    const available = getAvailableProviders();
+    const provider =
+      typeof article.provider === "string"
+        ? article.provider
+        : available.defaultProvider;
+    if (!available.providers.some((item) => item.id === provider)) {
+      sendJson(response, 503, {
+        error: "Deze AI-provider is niet geconfigureerd."
+      });
+      logRequest(request, 503, startedAt, { reason: "provider_not_configured" });
+      return;
+    }
+
+    sendJson(
+      response,
+      200,
+      await summarizeWithProvider(provider, article, summaryLength)
+    );
     logRequest(request, 200, startedAt);
   } catch (error) {
     const message =
@@ -294,9 +455,11 @@ const server = http.createServer(async (request, response) => {
     const statusCode =
       error instanceof SyntaxError
         ? 400
-        : message.startsWith("GEMINI_API_KEY")
-          ? 503
-          : 502;
+        : error instanceof UpstreamError || message.startsWith("Gemini")
+          ? 502
+          : message.startsWith("GEMINI_API_KEY")
+            ? 503
+            : 502;
     sendJson(response, statusCode, { error: message });
     logRequest(request, statusCode, startedAt, { error: message });
   }

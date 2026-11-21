@@ -3,11 +3,27 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return;
   }
 
-  fetch("http://localhost:8787/api/summarize", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(message.article)
-  })
+  chrome.storage.local
+    .get("backend-url")
+    .then(({ "backend-url": configuredUrl }) => {
+      const backendUrl = (configuredUrl || "http://localhost:8787").replace(
+        /\/$/,
+        ""
+      );
+      const parsedUrl = new URL(backendUrl);
+      if (
+        !["http:", "https:"].includes(parsedUrl.protocol) ||
+        parsedUrl.username ||
+        parsedUrl.password
+      ) {
+        throw new Error("De geconfigureerde backend-URL is ongeldig.");
+      }
+      return fetch(`${backendUrl}/api/summarize`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(message.article)
+      });
+    })
     .then(async (response) => {
       const body = await response.text();
       let data;
@@ -24,7 +40,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     .catch((error) => {
       const message =
         error instanceof TypeError
-          ? "De server is niet bereikbaar. Controleer of deze draait op poort 8787."
+          ? "De server is niet bereikbaar. Controleer de backend-URL en of de server draait."
           : error instanceof Error && error.message
             ? error.message
             : "De server kon het artikel niet samenvatten.";

@@ -169,6 +169,16 @@
         </div>
       </div>
       <p class="settings-help">Deze instelling wordt lokaal in Chrome opgeslagen.</p>
+      <label class="backend-url-label" for="ai-provider">AI-provider</label>
+      <select id="ai-provider" class="backend-url-input">
+        <option value="">Provider wordt geladen...</option>
+      </select>
+      <p id="ai-provider-status" class="settings-status" role="status"></p>
+      <label class="backend-url-label" for="backend-url">Backend-URL</label>
+      <input id="backend-url" class="backend-url-input" type="url" inputmode="url"
+        placeholder="http://localhost:8787">
+      <p class="settings-help">Gebruik voor productie een HTTPS-adres. API-sleutels horen niet in de extensie.</p>
+      <p id="backend-url-status" class="settings-status" role="status"></p>
     </section>
   </main>
   <script src="popup.js"></script>

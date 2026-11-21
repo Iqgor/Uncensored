@@ -188,16 +188,29 @@ function extractArticle() {
   );
 }
 
+async function extractArticleWhenReady() {
+  const attempts = 3;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const article = extractArticle();
+    if (article.text.length >= 100 || attempt === attempts - 1) {
+      return article;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 400));
+  }
+  return extractArticle();
+}
+
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type !== "EXTRACT_ARTICLE") {
     return;
   }
 
-  try {
-    sendResponse(extractArticle());
-  } catch (_error) {
-    sendResponse({
-      error: "De artikeltekst kon niet uit deze pagina worden gelezen."
-    });
-  }
+  void extractArticleWhenReady()
+    .then(sendResponse)
+    .catch(() =>
+      sendResponse({
+        error: "De artikeltekst kon niet uit deze pagina worden gelezen."
+      })
+    );
+  return true;
 });

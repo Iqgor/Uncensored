@@ -235,6 +235,39 @@ main {
   margin-top: 12px;
 }
 
+.backend-url-label {
+  display: block;
+  margin-top: 20px;
+  color: #536176;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.backend-url-input {
+  width: 100%;
+  margin-top: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  border-radius: 6px;
+  padding: 8px;
+  color: #334155;
+  background: #fff;
+  font: inherit;
+}
+
+.backend-url-input:focus-visible {
+  outline: 3px solid rgba(89, 103, 200, 0.24);
+  outline-offset: 2px;
+}
+
+.settings-status {
+  min-height: 18px;
+  margin-top: 6px;
+  color: #28624f;
+  font-size: 12px;
+}
+
 
 .length-label {
   display: flex;

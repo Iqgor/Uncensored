@@ -4,7 +4,7 @@
   "version": "0.2.0",
   "description": "Vat nieuwsartikelen samen met behulp van AI.",
   "permissions": ["activeTab", "sidePanel", "scripting", "storage"],
-  "host_permissions": ["http://localhost:8787/*"],
+  "host_permissions": ["http://localhost:8787/*", "https://*/*"],
   "action": {
     "default_title": "Open Samenvatting"
   },

@@ -52,6 +52,11 @@ premium/paywall gemarkeerd element woorden bevat zoals `premium`, `paywall` of
 pagina's waarop Readability geen artikel vindt, blijft een eenvoudige fallback
 beschikbaar.
 
+Bij client-gerenderde pagina's probeert de extensie de actuele DOM nog enkele
+keren opnieuw te lezen wanneer de artikeltekst nog niet beschikbaar is. Deze
+retry is begrensd en wordt alleen uitgevoerd wanneer de gebruiker om detectie
+vraagt.
+
 ## Rate limiting en logging
 
 De backend beperkt standaard het aantal samenvattingen tot 10 aanvragen per IP
@@ -71,15 +76,16 @@ productie zijn gedeelde opslag, authenticatie en een privacybeleid nodig.
 
 De extensie leest alleen de tekst van de actieve pagina wanneer de gebruiker
 op **Artikel Samenvatten** klikt. De tekst wordt naar de lokale backend gestuurd
-en vervolgens doorgestuurd naar Google Gemini om de samenvatting te genereren.
+en vervolgens doorgestuurd naar de geconfigureerde AI-provider om de
+samenvatting te genereren.
 De huidige MVP gebruikt geen database. De backend houdt alleen tijdelijke
 rate-limitdata in geheugen bij; de extensie gebruikt daarnaast een lokale
 cache voor samenvattingen, zoals hieronder beschreven.
 
 De serverlog bevat uitsluitend technische gegevens: HTTP-methode, route,
 statuscode, verwerkingstijd en clientadres. Artikeltekst, AI-uitvoer en
-API-sleutels worden niet gelogd. Google Gemini verwerkt de doorgestuurde tekst
-volgens de voorwaarden en het privacybeleid van de gekozen Google-dienst.
+API-sleutels worden niet gelogd. De gekozen AI-provider verwerkt de
+doorgestuurde tekst volgens diens voorwaarden en privacybeleid.
 
 De extensie bewaart samenvattingen maximaal 7 dagen lokaal in Chrome. De
 cache wordt gekoppeld aan de pagina-URL, de uitgelezen artikeltekst en het
@@ -95,7 +101,28 @@ vastgelegd in een volledig privacybeleid.
 
 - Testen op dynamische pagina's, paywalls en pagina's zonder artikeltekst.
 
-## Gemini configureren
+## AI-provider configureren
+
+Gemini is de standaardprovider. Je kunt ook een OpenAI-compatible provider
+gebruiken, bijvoorbeeld OpenAI, een compatible gateway of lokaal Ollama.
+
+```text
+AI_PROVIDER=openai-compatible
+AI_API_KEY=jouw-api-key
+AI_MODEL=jouw-modelnaam
+AI_BASE_URL=https://api.openai.com/v1
+```
+
+`AI_API_KEY` is optioneel voor providers die geen autorisatie gebruiken. Laat
+deze waarde weg voor lokale providers zoals Ollama. De API-sleutel wordt alleen
+op de backend gebruikt en wordt nooit naar of opgeslagen in de extensie
+gezonden.
+
+De beschikbare providers worden uit de backendconfiguratie geladen en kunnen in
+**Instellingen** worden gekozen. Als `AI_PROVIDER` is ingesteld, wordt die
+provider als standaard gebruikt.
+
+### Gemini configureren
 
 Maak in `C:\Uncensored\server` een bestand met de naam `.env`, gebaseerd op
 [.env.example](server/.env.example):
@@ -127,6 +154,11 @@ wordt naar de backend gestuurd en door Gemini exact aangehouden.
 Na het samenvatten kun je de samenvatting naar het klembord kopiëren, opnieuw
 laten genereren of het originele artikel openen. De knop **Opnieuw proberen**
 blijft ook beschikbaar wanneer het samenvatten mislukt.
+
+In **Instellingen** kun je ook de backend-URL aanpassen. Standaard gebruikt de
+extensie `http://localhost:8787`; voor een gehoste backend gebruik je een
+HTTPS-URL. De URL en de gekozen samenvattingslengte worden lokaal in Chrome
+opgeslagen. API-sleutels horen uitsluitend op de backend te staan.
 
 ## Taal
 
