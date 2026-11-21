@@ -587,12 +587,11 @@ input[type="range"]:focus-visible {
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  height: 34px;
 }
 
 .result-actions button {
   display: inline-grid;
-  width: 34px;
-  height: 34px;
   place-items: center;
   padding: 7px;
 }

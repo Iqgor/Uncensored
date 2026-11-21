@@ -165,7 +165,7 @@ async function summarizeWithGemini(article, summaryLength) {
           {
             parts: [
               {
-                text: `Vat dit nieuwsartikel samen met precies ${summaryLength} kernpunten. Schrijf de samenvatting als twee of drie korte alinea's en scheid de alinea's met een lege regel.\n\nTitel: ${
+                text: `Vat dit nieuwsartikel beknopt samen van maximaal 100 woorden met precies ${summaryLength} kernpunten. Schrijf de samenvatting als één kleine alinea.\n\nTitel: ${
                   article.title?.trim() || "Onbekend"
                 }\n\nArtikel:\n${cleanArticleText(article.text)}`
               }
