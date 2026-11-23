@@ -18,7 +18,7 @@ codebijdragen zijn welkom.
 3. Maak `server\.env` aan op basis van `server\.env.example`.
 4. Bouw de extensie met `cd C:\Uncensored\extension; npm run build`.
 5. Start de backend met `cd C:\Uncensored\server; npm start`.
-6. Laad de map `C:\Uncensored\extension` als unpacked extension in Chrome.
+6. Laad de map `C:\Uncensored\extension\dist` als unpacked extension in Chrome.
 
 ## Wijzigingen controleren
 
@@ -34,8 +34,10 @@ node --check server.js
 cd ..\
 node --check extension\background.js
 node --check extension\content-source.js
-node --check extension\popup.js
-git diff --exit-code -- extension/content.js
+node --check extension\dist\background.js
+node --check extension\dist\content.js
+node --check extension\dist\sidepanel.js
+git diff --exit-code -- extension\dist
 ```
 
 Beschrijf in de pull request wat je hebt getest en vermeld bekende beperkingen.
@@ -45,7 +47,7 @@ reproductiestappen toe.
 ## Releasepakket
 
 Releases worden opgebouwd door GitHub Actions via tags in de vorm `vX.Y.Z`. De
-workflow valideert dat `extension/manifest.json` dezelfde versie bevat en uploadt
+workflow valideert dat `extension/public/manifest.json` dezelfde versie bevat en uploadt
 zowel een unpacked extensiemap als een zip-artefact met die versie.
 
 ## Issues en pull requests

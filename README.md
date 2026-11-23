@@ -31,7 +31,7 @@ vroege MVP en staat open voor feedback, bugreports en bijdragen.
 
 4. Open in Chrome `chrome://extensions`.
 5. Zet **Developer mode** aan.
-6. Kies **Load unpacked** en selecteer `C:\Uncensored\extension`.
+6. Kies **Load unpacked** en selecteer `C:\Uncensored\extension\dist`.
 7. Open een nieuwsartikel en klik op de extensie.
 
 ### Ondersteunde omgeving
@@ -194,12 +194,14 @@ node --check server.js
 cd ..\
 node --check extension\background.js
 node --check extension\content-source.js
-node --check extension\popup.js
-git diff --exit-code -- extension/content.js
+node --check extension\dist\background.js
+node --check extension\dist\content.js
+node --check extension\dist\sidepanel.js
+git diff --exit-code -- extension\dist
 ```
 
-Hiermee faalt de check direct wanneer de gegenereerde `extension/content.js` niet
-meer overeenkomt met `extension/content-source.js`.
+Hiermee faalt de check wanneer de gegenereerde inhoud van `extension/dist`
+niet overeenkomt met de Vue/Vite-bron.
 
 ## Release
 
@@ -208,5 +210,5 @@ Bij een tag `vX.Y.Z` draait `.github/workflows/release.yml` en maakt:
 - een versie-map `uncensored-extension-vX.Y.Z` (unpacked extension);
 - een reproduceerbare zip `uncensored-extension-vX.Y.Z.zip`.
 
-De workflow faalt als `extension/manifest.json` een andere versie bevat dan de
+De workflow faalt als `extension/public/manifest.json` een andere versie bevat dan de
 release-tag (zonder `v`), zodat packageversie en releaseversie gelijk blijven.

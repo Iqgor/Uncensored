@@ -4,15 +4,15 @@
   "version": "0.2.0",
   "type": "module",
   "scripts": {
-    "build": "esbuild content-source.js --bundle --format=iife --outfile=content.js"
+    "dev": "vite",
+    "build": "vite build && node -e \"const fs=require('node:fs');fs.copyFileSync('dist/src/sidepanel.html','dist/sidepanel.html');fs.rmSync('dist/src',{recursive:true,force:true})\""
   },
   "dependencies": {
-    "@mozilla/readability": "^0.5.0"
+    "@mozilla/readability": "^0.5.0",
+    "vue": "^3.5.13"
   },
   "devDependencies": {
-    "esbuild": "^0.25.0"
-  },
-  "allowScripts": {
-    "esbuild@0.25.12": true
+    "@vitejs/plugin-vue": "^5.2.1",
+    "vite": "^6.0.5"
   }
 }
