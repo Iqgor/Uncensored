@@ -39,15 +39,60 @@ const backendUrlElement = document.querySelector("#backend-url");
 const backendUrlStatusElement = document.querySelector("#backend-url-status");
 const aiProviderElement = document.querySelector("#ai-provider");
 const aiProviderStatusElement = document.querySelector("#ai-provider-status");
+const themeModeElement = document.querySelector("#theme-mode");
 const SAVED_PREFIX = "saved-summary:";
 const LEGACY_CACHE_PREFIX = "summary-cache:";
 const SETTINGS_KEY = "summary-settings";
 const BACKEND_URL_KEY = "backend-url";
 const DEFAULT_BACKEND_URL = "http://localhost:8787";
 const AI_PROVIDER_KEY = "ai-provider";
+const THEME_MODE_KEY = "theme-mode";
 const SUMMARY_FORMAT_VERSION = 3;
 let currentArticle = null;
 let currentResult = null;
+const systemThemeMedia = globalThis.matchMedia?.("(prefers-color-scheme: dark)");
+
+function resolveTheme(mode) {
+  if (mode === "dark" || mode === "light") {
+    return mode;
+  }
+  return systemThemeMedia?.matches ? "dark" : "light";
+}
+
+function applyTheme(mode) {
+  const resolvedTheme = resolveTheme(mode);
+  document.documentElement.dataset.theme = resolvedTheme;
+  document.documentElement.style.colorScheme = resolvedTheme;
+  if (themeModeElement) {
+    themeModeElement.value =
+      mode === "dark" || mode === "light" || mode === "system" ? mode : "system";
+  }
+}
+
+function setThemeMode(mode) {
+  applyTheme(mode);
+  if (hasStorage()) {
+    void chrome.storage.local.set({ [THEME_MODE_KEY]: mode });
+  }
+}
+
+async function loadTheme() {
+  let mode = "system";
+  if (hasStorage()) {
+    const stored = await chrome.storage.local.get(THEME_MODE_KEY);
+    const savedMode = stored[THEME_MODE_KEY];
+    if (savedMode === "light" || savedMode === "dark" || savedMode === "system") {
+      mode = savedMode;
+    }
+  }
+  applyTheme(mode);
+}
+
+systemThemeMedia?.addEventListener?.("change", () => {
+  if (themeModeElement?.value === "system") {
+    applyTheme("system");
+  }
+});
 
 function showError(message) {
   statusElement.textContent = message;
@@ -185,6 +230,7 @@ async function renderSavedSummaries() {
 }
 
 async function loadSettings() {
+      await loadTheme();
       if (!hasStorage()) {
         return;
       }
@@ -471,6 +517,9 @@ aiProviderElement.addEventListener("change", () => {
   if (hasStorage()) {
     void chrome.storage.local.set({ [AI_PROVIDER_KEY]: aiProviderElement.value });
   }
+});
+themeModeElement.addEventListener("change", () => {
+  setThemeMode(themeModeElement.value);
 });
 currentArticleTab.addEventListener("click", () => setView("current"));
 savedTab.addEventListener("click", () => setView("saved"));

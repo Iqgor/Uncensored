@@ -720,3 +720,128 @@ li {
   color: #6b7280;
   font-size: 12px;
 }
+
+.theme-setting {
+  margin: 2px 0 4px;
+}
+
+html[data-theme="dark"],
+html[data-theme="dark"] body {
+  color-scheme: dark;
+}
+
+html[data-theme="dark"] body {
+  color: #dde5f3;
+  background: #181a20;
+  border-color: rgba(148, 163, 184, 0.18);
+}
+
+html[data-theme="dark"] h1,
+html[data-theme="dark"] .view-heading h2,
+html[data-theme="dark"] #result-title,
+html[data-theme="dark"] .article-detected h2 {
+  color: #f1f5fb;
+}
+
+html[data-theme="dark"] header {
+  border-bottom-color: rgba(148, 163, 184, 0.18);
+}
+
+html[data-theme="dark"] .tab-button,
+html[data-theme="dark"] .text-button,
+html[data-theme="dark"] .icon-button,
+html[data-theme="dark"] .settings-option,
+html[data-theme="dark"] .length-label,
+html[data-theme="dark"] .backend-url-label,
+html[data-theme="dark"] .privacy-note,
+html[data-theme="dark"] #summary,
+html[data-theme="dark"] li,
+html[data-theme="dark"] h3 {
+  color: #bdc8da;
+}
+
+html[data-theme="dark"] .article-detected,
+html[data-theme="dark"] .result,
+html[data-theme="dark"] .saved-item,
+html[data-theme="dark"] .settings-option select,
+html[data-theme="dark"] .backend-url-input,
+html[data-theme="dark"] .privacy-note p {
+  color: #dde5f3;
+  background: #242730;
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
+html[data-theme="dark"] .empty-state,
+html[data-theme="dark"] .settings-help,
+html[data-theme="dark"] .detected-source,
+html[data-theme="dark"] .detected-reading-time,
+html[data-theme="dark"] .range-markers,
+html[data-theme="dark"] .disclaimer,
+html[data-theme="dark"] .meta-item {
+  color: #9faabd;
+}
+
+html[data-theme="dark"] .saved-count,
+html[data-theme="dark"] output {
+  color: #c9d2ff;
+  background: rgba(129, 140, 248, 0.22);
+}
+
+html[data-theme="dark"] .summarize-button {
+  color: #eef1ff;
+  background: rgba(129, 140, 248, 0.32);
+}
+
+html[data-theme="dark"] .reading-time,
+html[data-theme="dark"] .result-actions button,
+html[data-theme="dark"] .result-actions a {
+  color: #dce2ff;
+  background: rgba(129, 140, 248, 0.16);
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
+html[data-theme="dark"] .reading-time-saved,
+html[data-theme="dark"] .reading-time-arrow,
+html[data-theme="dark"] .text-button,
+html[data-theme="dark"] .privacy-note summary {
+  color: #c0c7ff;
+}
+
+html[data-theme="dark"] .error-message {
+  color: #fecaca;
+  background: rgba(127, 29, 29, 0.42);
+  border-color: rgba(248, 113, 113, 0.32);
+}
+
+html[data-theme="dark"] #paywall-warning {
+  color: #fed7aa;
+  background: rgba(120, 53, 15, 0.42);
+  border-color: rgba(251, 191, 36, 0.38);
+}
+
+html[data-theme="dark"] .settings-status,
+html[data-theme="dark"] .saved-count {
+  color: #bfc8e8;
+}
+
+html[data-theme="dark"] input[type="range"]::-webkit-slider-runnable-track {
+  background:
+    linear-gradient(90deg,
+      #5967c8 0%,
+      #5967c8 var(--range-progress, 50%),
+      #424759 var(--range-progress, 50%),
+      #424759 100%);
+}
+
+html[data-theme="dark"] input[type="range"]::-webkit-slider-thumb,
+html[data-theme="dark"] input[type="range"]::-moz-range-thumb {
+  border-color: #242730;
+}
+
+html[data-theme="dark"] .bi-list-path {
+  fill: #dde5f3;
+}
+
+html[data-theme="dark"] .bi-list:hover .bi-list-path {
+  fill: #9ba8ff;
+}
